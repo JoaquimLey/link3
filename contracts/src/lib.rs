@@ -75,13 +75,22 @@ impl Link3 {
         )
     }
 
-    pub fn list(&self) -> Vec<&Item> {
+    pub fn list(&self) -> Vec<(String, String, String)> {
         if !self.is_public {
             env::panic(b"This contract is not public");
         }
 
         let links_ref = &self.links;
-        if env::current_account_id() == self.owner_account_id {
+        links_ref.iter().map(|item| item.read()).collect()
+    }
+
+    pub fn list_accessable(&self) -> Vec<&Item> {
+        if !self.is_public {
+            env::panic(b"This contract is not public");
+        }
+
+        let links_ref = &self.links;
+        if env::predecessor_account_id() == self.owner_account_id {
             return links_ref.iter().collect();
         } else {
             return links_ref.iter().filter(|link| link.has_access()).collect();
@@ -94,14 +103,17 @@ impl Link3 {
         }
 
         let links_ref = &self.links;
-        return links_ref.iter().filter(|link| link.is_public()).collect();
+        return links_ref
+            .iter()
+            .filter(|link| link.is_public() && !link.is_premium())
+            .collect();
     }
 
     /****************
      * CALL METHODS *
      ****************/
     pub fn update_public_status(&mut self, is_public: bool) {
-        if env::signer_account_id() != self.owner_account_id {
+        if env::predecessor_account_id() != self.owner_account_id {
             env::panic(b"Only the owner can change public state");
         }
 
@@ -121,7 +133,7 @@ impl Link3 {
         price: Option<Balance>,
         image_preview_uri: Option<String>,
     ) -> &Item {
-        if env::signer_account_id() != self.owner_account_id {
+        if env::predecessor_account_id() != self.owner_account_id {
             env::panic(b"Only the owner can create a link");
         }
 
@@ -141,9 +153,7 @@ impl Link3 {
         &self.links[self.links.len() - 1]
     }
 
-    pub fn buy_link() {
-
-    }
+    pub fn buy_link() {}
 }
 
 /*********
@@ -169,7 +179,7 @@ mod tests {
             current_account_id: "alice.testnet".to_string(),
             signer_account_id: "alice.testnet".to_string(),
             signer_account_pk: vec![0, 1, 2],
-            predecessor_account_id: "jane.testnet".to_string(),
+            predecessor_account_id: "alice.testnet".to_string(),
             input,
             block_index: 0,
             block_timestamp: 0,
@@ -194,7 +204,7 @@ mod tests {
             current_account_id: "alice.testnet".to_string(),
             signer_account_id: "robert.testnet".to_string(),
             signer_account_pk: vec![0, 1, 2],
-            predecessor_account_id: "jane.testnet".to_string(),
+            predecessor_account_id: "robert.testnet".to_string(),
             input,
             block_index: 0,
             block_timestamp: 0,
@@ -411,6 +421,8 @@ mod tests {
         let context = get_context(vec![], false, Some(1));
         testing_env!(context);
         let mut contract = generate_contract(Some(true));
+
+        // Create a link that is public and not public
         contract.create_link(
             "some_uri".to_string(),
             "some_title".to_string(),
@@ -419,6 +431,17 @@ mod tests {
             true,
             false,
             None,
+            None,
+        );
+        // Create a link that is public but premium
+        contract.create_link(
+            "some_uri".to_string(),
+            "some_title".to_string(),
+            "some_description".to_string(),
+            Some("image".to_string()),
+            false,
+            true,
+            Some(1337),
             None,
         );
         // Create a link that is not public

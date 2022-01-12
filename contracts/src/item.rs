@@ -1,12 +1,11 @@
 // To conserve gas, efficient serialization is achieved through Borsh (http://borsh.io/)
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 //use near_sdk::collections::LookupMap;
-use near_sdk::{env, log, AccountId, Balance, PanicOnDefault};
+use near_sdk::{env, log, near_bindgen, AccountId, Balance, PanicOnDefault};
 use serde::Serialize;
 
-// Struct definition
-//#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, PanicOnDefault, Serialize)]
+// #[near_bindgen]
+#[derive(BorshSerialize, BorshDeserialize, PanicOnDefault, Serialize)]
 pub struct Item {
     // See more data types at https://doc.rust-lang.org/book/ch03-02-data-types.html
     uri: String,
@@ -16,12 +15,12 @@ pub struct Item {
     is_public: bool,
     is_premium: bool,
     price: Option<Balance>,
-    account_access: Vec<AccountId>,
     image_preview_uri: Option<String>,
+    account_access: Vec<AccountId>,
 }
 
 // Core Logic/Implementation
-//#[near_bindgen]
+// #[near_bindgen]
 impl Item {
     // Instantiate a new Item
     pub fn new(
@@ -49,7 +48,11 @@ impl Item {
             is_premium,
             price,
             // account_access: LookupMap::new(b"b".to_vec()),
-            account_access: vec![env::signer_account_id()],
+            account_access: if is_premium {
+                vec![env::predecessor_account_id()]
+            } else {
+                vec![]
+            },
             image_preview_uri,
         }
     }
@@ -108,6 +111,10 @@ impl Item {
         self.is_public
     }
 
+    pub fn is_premium(&self) -> bool {
+        self.is_premium
+    }
+
     pub fn has_access(&self) -> bool {
         if !self.is_public {
             // If it is not public, it can't be accessed by anyone
@@ -131,7 +138,7 @@ impl Item {
             env::panic(b"Can't read an item that is not public.");
         }
 
-        if !self.is_premium || Self::has_access(self) {
+        if !self.is_premium || Item::has_access(self) {
             // Is not premium or user has bought the item, return uri info
             (
                 self.uri.clone(),
@@ -266,7 +273,32 @@ mod tests {
         assert_eq!(true, contract.is_public);
         assert_eq!(false, contract.is_premium);
         assert_eq!(None, contract.price);
+        assert_eq!(contract.account_access.len(), 0);
+    }
+
+    #[test]
+    fn init_creates_with_premium_adds_owner_access() {
+        // Given
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        // When
+        // - Instantiate the contract with init
+        let contract = Item::new(
+            "https://google.com".to_string(),
+            "A random title".to_string(),
+            "The item description".to_string(),
+            Some("https://s3.envato.com/files/244088191/Google%20Logo.1.jpg".to_string()),
+            true,
+            true,
+            Some(1),
+            None,
+        );
+        // Then
         assert_eq!(contract.account_access.len(), 1);
+        assert_eq!(
+            contract.account_access[contract.account_access.len() - 1],
+            "jane.testnet".to_string()
+        );
     }
 
     #[test]
