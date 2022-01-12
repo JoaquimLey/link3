@@ -140,6 +140,10 @@ impl Link3 {
         // Return created item
         &self.links[self.links.len() - 1]
     }
+
+    pub fn buy_link() {
+
+    }
 }
 
 /*********
@@ -284,7 +288,7 @@ mod tests {
         // Create contract that is not public
         let contract = generate_contract(Some(false));
         // When
-        let info = contract.get_info();
+        contract.get_info();
         // Then
         // - Should panic
     }

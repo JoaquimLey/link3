@@ -1,7 +1,7 @@
 // To conserve gas, efficient serialization is achieved through Borsh (http://borsh.io/)
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::LookupMap;
-use near_sdk::{env, log, near_bindgen, AccountId, Balance, PanicOnDefault, Timestamp};
+//use near_sdk::collections::LookupMap;
+use near_sdk::{env, log, AccountId, Balance, PanicOnDefault};
 use serde::Serialize;
 
 // Struct definition
@@ -49,7 +49,7 @@ impl Item {
             is_premium,
             price,
             // account_access: LookupMap::new(b"b".to_vec()),
-            account_access: vec![],
+            account_access: vec![env::signer_account_id()],
             image_preview_uri,
         }
     }
@@ -58,19 +58,20 @@ impl Item {
      * CALL METHODS *
      ****************/
     //#[payable]
-    pub fn buy(&mut self, account_id: AccountId) {
+    pub fn buy(&mut self) {
         // Assert
         if !self.is_premium {
             env::panic(b"Can't buy a free/non-premium item.");
         }
 
-        if env::signer_account_id() == env::current_account_id() {
+        if env::predecessor_account_id() == env::current_account_id() {
             env::panic(b"Owner can't buy their own item.");
         }
 
-        if self.account_access
+        if self
+            .account_access
             .iter()
-            .find(|account_id| account_id == &&env::signer_account_id())
+            .find(|account_id| account_id == &&env::predecessor_account_id())
             // .get(&env::current_account_id())
             .is_some()
         {
@@ -82,12 +83,13 @@ impl Item {
         }
 
         // Mutate (spend gas) - Add account to access list
-        self.account_access
-            // .insert(&env::current_account_id(), &env::block_timestamp());
-            .push(env::current_account_id());
+        self.account_access.push(env::predecessor_account_id());
 
         // Done, print out confirmation message.
-        let log_account = format!("Item bought by Account ID {} successfully!", &account_id);
+        let log_account = format!(
+            "Item bought by Account ID {} successfully!",
+            env::predecessor_account_id()
+        );
         env::log(log_account.as_bytes());
     }
 
@@ -116,6 +118,7 @@ impl Item {
         if !self.is_premium {
             return true;
         }
+
         // Otherwise check account access from list
         self.account_access
             .iter()
@@ -192,16 +195,16 @@ mod tests {
     fn get_context_alternative(input: Vec<u8>, is_view: bool) -> VMContext {
         VMContext {
             current_account_id: "alternative.testnet".to_string(),
-            signer_account_id: "robert.testnet".to_string(),
+            signer_account_id: "ronaldo.testnet".to_string(),
             signer_account_pk: vec![0, 1, 2],
-            predecessor_account_id: "jane.testnet".to_string(),
+            predecessor_account_id: "ronaldo.testnet".to_string(),
             input,
             block_index: 0,
             block_timestamp: 0,
             account_balance: 0,
             account_locked_balance: 0,
             storage_usage: 0,
-            attached_deposit: 0,
+            attached_deposit: 5,
             prepaid_gas: 10u64.pow(18),
             random_seed: vec![0, 1, 2],
             is_view,
@@ -263,6 +266,7 @@ mod tests {
         assert_eq!(true, contract.is_public);
         assert_eq!(false, contract.is_premium);
         assert_eq!(None, contract.price);
+        assert_eq!(contract.account_access.len(), 1);
     }
 
     #[test]
@@ -295,5 +299,23 @@ mod tests {
         let result = item.is_public();
         // Then
         assert_eq!(result, true);
+    }
+
+    #[test]
+    fn buy_adds_account_access() {
+        // Given
+        let context = get_context(vec![], false);
+        testing_env!(context);
+        let mut item = generate_item(true, true, Some(1));
+        // When
+        let context_buyer = get_context_alternative(vec![], false);
+        testing_env!(context_buyer);
+        item.buy();
+
+        // Then
+        assert_eq!(
+            item.account_access[item.account_access.len() - 1],
+            "ronaldo.testnet".to_string()
+        );
     }
 }
