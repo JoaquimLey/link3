@@ -1,0 +1,25 @@
+[package]
+name = "link3"
+version = "0.1.0"
+authors = ["Joaquim Ley <joaquimley@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+#near-sdk = "4.0.0-pre.5"
+near-sdk = "3.1.0"
+serde = { version = "1.0", features = ["derive"] }
+
+[profile.release]
+codegen-units = 1
+opt-level = "s"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true
+
+# To compile for production 
+# env 'RUSTFLAGS=-C link-arg=-s' 
+# cargo build --target wasm32-unknown-unknown --release
