@@ -1,13 +1,13 @@
 // To conserve gas, efficient serialization is achieved through Borsh (http://borsh.io/)
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-//use near_sdk::collections::LookupMap;
-use near_sdk::{env, log, near_bindgen, AccountId, Balance, PanicOnDefault};
+use near_sdk::{env, log, AccountId, Balance, PanicOnDefault};
 use serde::Serialize;
 
 // #[near_bindgen]
-#[derive(BorshSerialize, BorshDeserialize, PanicOnDefault, Serialize)]
+#[derive(BorshSerialize, BorshDeserialize, Clone, PanicOnDefault, Serialize)]
 pub struct Item {
     // See more data types at https://doc.rust-lang.org/book/ch03-02-data-types.html
+    id: u64,
     uri: String,
     title: String,
     description: String,
@@ -24,6 +24,7 @@ pub struct Item {
 impl Item {
     // Instantiate a new Item
     pub fn new(
+        id: u64,
         uri: String,
         title: String,
         description: String,
@@ -38,8 +39,8 @@ impl Item {
         }
 
         log!("Creating new item with title {},", &title);
-
         Item {
+            id,
             uri,
             title,
             description,
@@ -67,14 +68,14 @@ impl Item {
             env::panic(b"Can't buy a free/non-premium item.");
         }
 
-        if env::predecessor_account_id() == env::current_account_id() {
+        if env::signer_account_id() == env::current_account_id() {
             env::panic(b"Owner can't buy their own item.");
         }
 
         if self
             .account_access
             .iter()
-            .find(|account_id| account_id == &&env::predecessor_account_id())
+            .find(|account_id| account_id == &&env::signer_account_id())
             // .get(&env::current_account_id())
             .is_some()
         {
@@ -86,13 +87,14 @@ impl Item {
         }
 
         // Mutate (spend gas) - Add account to access list
-        self.account_access.push(env::predecessor_account_id());
+        self.account_access.push(env::signer_account_id());
 
         // Done, print out confirmation message.
         let log_account = format!(
             "Item bought by Account ID {} successfully!",
-            env::predecessor_account_id()
+            env::signer_account_id()
         );
+
         env::log(log_account.as_bytes());
     }
 
@@ -107,6 +109,10 @@ impl Item {
     /****************
      * READ METHODS *
      ****************/
+    pub fn id(&self) -> u64 {
+        self.id
+    }
+
     pub fn is_public(&self) -> bool {
         self.is_public
     }
@@ -126,6 +132,10 @@ impl Item {
             return true;
         }
 
+        println!("Checking has access for item with id {}", self.id);
+        self.account_access.iter().for_each(|account_id| {
+            println!("Access account id {}", account_id);
+        });
         // Otherwise check account access from list
         self.account_access
             .iter()
@@ -133,26 +143,12 @@ impl Item {
             .is_some()
     }
 
-    pub fn read(&self) -> (String, String, String) {
+    pub fn read(&self) -> ItemInfo {
         if !self.is_public {
             env::panic(b"Can't read an item that is not public.");
         }
-
-        if !self.is_premium || Item::has_access(self) {
-            // Is not premium or user has bought the item, return uri info
-            (
-                self.uri.clone(),
-                self.title.clone(),
-                self.image_uri.clone().unwrap_or_default(),
-            )
-        } else {
-            // Only show public information (no uri)
-            (
-                "".to_string(),
-                self.title.clone(),
-                self.image_preview_uri.clone().unwrap_or_default(),
-            )
-        }
+        let has_access = !self.is_premium || Item::has_access(self);
+        ItemInfo::map(self, has_access)
     }
 
     /********************
@@ -220,8 +216,9 @@ mod tests {
         }
     }
 
-    fn generate_item(is_public: bool, is_premium: bool, price: Option<Balance>) -> Item {
+    fn generate_item(id: u64, is_public: bool, is_premium: bool, price: Option<Balance>) -> Item {
         Item::new(
+            id,
             "https://google.com".to_string(),
             "A random title".to_string(),
             "The item description".to_string(),
@@ -253,6 +250,7 @@ mod tests {
         // When
         // - Instantiate the contract with init
         let contract = Item::new(
+            123,
             "https://google.com".to_string(),
             "A random title".to_string(),
             "The item description".to_string(),
@@ -263,6 +261,7 @@ mod tests {
             None,
         );
         // Then
+        assert_eq!(123, contract.id);
         assert_eq!("https://google.com".to_string(), contract.uri);
         assert_eq!("A random title".to_string(), contract.title);
         assert_eq!("The item description".to_string(), contract.description);
@@ -284,6 +283,7 @@ mod tests {
         // When
         // - Instantiate the contract with init
         let contract = Item::new(
+            123,
             "https://google.com".to_string(),
             "A random title".to_string(),
             "The item description".to_string(),
@@ -310,6 +310,7 @@ mod tests {
         // When:
         // - Instantiate a contract with premium set to true and price to None should panic
         Item::new(
+            123,
             "https://google.com".to_string(),
             "A random title".to_string(),
             "The item description".to_string(),
@@ -326,7 +327,7 @@ mod tests {
         // Given
         let context = get_context(vec![], false);
         testing_env!(context);
-        let item = generate_item(true, false, None);
+        let item = generate_item(123, true, false, None);
         // When
         let result = item.is_public();
         // Then
@@ -338,7 +339,7 @@ mod tests {
         // Given
         let context = get_context(vec![], false);
         testing_env!(context);
-        let mut item = generate_item(true, true, Some(1));
+        let mut item = generate_item(123, true, true, Some(1));
         // When
         let context_buyer = get_context_alternative(vec![], false);
         testing_env!(context_buyer);
@@ -349,5 +350,36 @@ mod tests {
             item.account_access[item.account_access.len() - 1],
             "ronaldo.testnet".to_string()
         );
+    }
+}
+
+#[derive(BorshSerialize, BorshDeserialize, PanicOnDefault, Serialize)]
+pub struct ItemInfo {
+    pub id: u64,
+    pub uri: Option<String>,
+    pub title: String,
+    pub description: String,
+    pub image_uri: Option<String>,
+    pub price: Option<Balance>,
+}
+
+impl ItemInfo {
+    pub fn map(from: &Item, has_access: bool) -> Self {
+        ItemInfo {
+            id: from.id,
+            uri: if has_access {
+                Some(from.uri.clone())
+            } else {
+                None
+            },
+            title: from.title.clone(),
+            description: from.description.clone(),
+            image_uri: if has_access {
+                from.image_uri.clone()
+            } else {
+                from.image_preview_uri.clone()
+            },
+            price: from.price,
+        }
     }
 }

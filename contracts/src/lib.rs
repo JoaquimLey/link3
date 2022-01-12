@@ -1,10 +1,11 @@
+use std::convert::TryFrom;
 use std::vec;
-
 // To conserve gas, efficient serialization is achieved through Borsh (http://borsh.io/)
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, log, near_bindgen, AccountId, Balance, PanicOnDefault};
 // Crates
 use crate::item::Item;
+use crate::item::ItemInfo;
 mod item;
 
 near_sdk::setup_alloc!();
@@ -63,7 +64,7 @@ impl Link3 {
     /****************
      * READ METHODS *
      ****************/
-    pub fn get_info(&self) -> (String, String, Option<String>) {
+    pub fn info(&self) -> (String, String, Option<String>) {
         if !self.is_public {
             env::panic(b"This contract is not public");
         }
@@ -75,13 +76,17 @@ impl Link3 {
         )
     }
 
-    pub fn list(&self) -> Vec<(String, String, String)> {
+    pub fn list(&self) -> Vec<ItemInfo> {
         if !self.is_public {
             env::panic(b"This contract is not public");
         }
 
         let links_ref = &self.links;
-        links_ref.iter().map(|item| item.read()).collect()
+        links_ref
+            .iter()
+            .filter(|item| item.is_public())
+            .map(|item| item.read())
+            .collect()
     }
 
     pub fn list_accessable(&self) -> Vec<&Item> {
@@ -137,7 +142,9 @@ impl Link3 {
             env::panic(b"Only the owner can create a link");
         }
 
+        let id = u64::try_from(self.links.len() + 1).unwrap();
         let item = Item::new(
+            id,
             uri,
             title,
             description,
@@ -153,17 +160,23 @@ impl Link3 {
         &self.links[self.links.len() - 1]
     }
 
-    pub fn buy_link() {}
+    #[payable]
+    pub fn buy_link(&mut self, id: u64) -> ItemInfo {
+        let mut item = self
+            .links
+            .iter()
+            .find(|item| item.id() == id && item.is_public())
+            .unwrap_or_else(|| env::panic(b"Link not found"))
+            .clone();
+
+        item.buy();
+        return item.read();
+    }
 }
 
 /*********
  * TESTS *
  *********/
-
-/*
- * To run these, the command will be:
- * cargo test
- */
 
 // use the attribute below for unit tests
 #[cfg(test)]
@@ -298,7 +311,7 @@ mod tests {
         // Create contract that is not public
         let contract = generate_contract(Some(false));
         // When
-        contract.get_info();
+        contract.info();
         // Then
         // - Should panic
     }
@@ -310,7 +323,7 @@ mod tests {
         testing_env!(context);
         let contract = generate_contract(None);
         // When
-        let info = contract.get_info();
+        let info = contract.info();
         // Then
         assert_eq!(info.0, contract.title);
         assert_eq!(info.1, contract.description);
@@ -459,5 +472,89 @@ mod tests {
         let result = contract.list_public();
         // Then
         assert_eq!(result.len(), 1, "Should've only return the public item")
+    }
+
+    #[test]
+    #[should_panic(expected = "Owner can't buy their own item.")]
+    fn owner_cant_buy_link_() {
+        // Given
+        let context = get_context(vec![], false, Some(1));
+        testing_env!(context);
+        let mut contract = generate_contract(Some(true));
+        // Create a link that is public but premium
+        contract.create_link(
+            "some_uri".to_string(),
+            "some_title".to_string(),
+            "some_description".to_string(),
+            Some("image".to_string()),
+            true,
+            true,
+            Some(4),
+            None,
+        );
+        // When
+        let list = contract.list();
+        contract.buy_link(list[0].id);
+        // Then
+        // - Should panic
+    }
+
+    #[test]
+    fn buy_link_gives_access() {
+        // Given
+        let context = get_context(vec![], false, Some(1));
+        testing_env!(context);
+
+        // Create contract
+        let mut contract = generate_contract(Some(true));
+        // Create a link that is public and not premium
+        contract.create_link(
+            "some_uri".to_string(),
+            "some_title".to_string(),
+            "some_description".to_string(),
+            Some("image".to_string()),
+            true,
+            false,
+            None,
+            None,
+        );
+        // Create a link that is public but premium
+        contract.create_link(
+            "some_uri".to_string(),
+            "some_title".to_string(),
+            "some_description".to_string(),
+            Some("image".to_string()),
+            true,
+            true,
+            Some(4),
+            None,
+        );
+        // Create a link that is not public
+        contract.create_link(
+            "some_uri".to_string(),
+            "some_title".to_string(),
+            "some_description".to_string(),
+            Some("image".to_string()),
+            false,
+            false,
+            None,
+            None,
+        );
+
+        // When
+        let alterinative_context = get_alternative_context(vec![], false, Some(8));
+        testing_env!(alterinative_context);
+
+        println!("-------------------------------------");
+        let accessible_before = contract.list_accessable();
+        assert_eq!(accessible_before.len(), 1, "Accessable should start with 1 accessible");
+
+        let list = contract.list();
+        let result = contract.buy_link(list[1].id);
+        println!("Bought item with id: {}", result.id);
+        println!("-------------------------------------");
+        let accessible = contract.list_accessable();
+        // Then
+        assert_eq!(accessible.len(), 2, "Sould've returned 2 accesible")
     }
 }
