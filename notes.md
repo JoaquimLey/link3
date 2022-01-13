@@ -1,36 +1,30 @@
 # Link3
 
-- Links (clone linktree)
+- Create Links (similar to linktree)
 
 - Allow to add categories to links
 
-- Allow to charge/buy to reveal link (onlyFans)
+- Allow to charge/buy to reveal link `uri` (Gated content)
 
 - Allow to hide the link for certain wallet(s) - ban
 
-### (optional) count on clicks with frontend method
-### (optional) add some sort of analytics 
+### Extras
+- Expires (becomes invalid after X timestamp)
+- Category metadata
 
-## Categories for links and show only certain categories 
+## TODO & Ideas
+- [ ] Validate wallets by using other chain contracts etc.
+- [ ] Count # of clicks with frontend tracking call
+- [ ] Add some sort of analytics
+- [ ] Maybe add social media profile verification 
+
+
+### Useful links
+- https://github.com/near-apps/linkdrop-proxy
+  
 - https://www.producthunt.com/posts/metabio
 
-### Extras
-
-## Use WalletConnect to bridge all of these
-
-**Project id:**
-```
-57baeb311fe2753a3d9b8fe3b91d5e53
-```
-
-### Useful
-https://github.com/near-apps/linkdrop-proxy
-
-## TODOs
-- [] Validate wallets by using other chain contracts etc.
-
-
-# Compile & Deploy
+# Development & Testing
 
 ## Compile for release
 ```
@@ -50,19 +44,26 @@ source neardev/dev-account.env
 Check if it was correctly loaded
 ```
 echo $CONTRACT_NAME
+
+// Should print the dev account something like:
+$ dev-1642022356114-95915049874087
 ````
 
-# Interact with the contract with the near-cli
+# Interact with the contract via the [near-cli](https://github.com/near/near-cli)
+
+### You can interact with contract with `view` or `call` 
+
 ```
-// Then uses with
-near view $echo $CONTRACT_NAME method_name
-// or
-near call $CONTRACT_NAME method_name '{ "param": "value" }'
+// View method
+near view $CONTRACT_NAME method_name
+
+// Call function (passing 1 NEAR)
+near call $CONTRACT_NAME method_name '{ "param": "value" }' --amount 1
 ```
 
-# Contract METHODS
+# Link3 contract API
 
-### List item as ItemInfo, if user has access will have the uri and image, null or image_preview otherwise, id to 'buy'
+List item as `ItemInfo`, if user has access it will have the `uri` and `image`, otherwise the `uri` will be `null` and the returned  `image` will be the `image_preview`.
 ```
 near view $CONTRACT_NAME list
 ```
@@ -77,14 +78,26 @@ near view $CONTRACT_NAME list_public
 near view $CONTRACT_NAME list_accessable
 ```
 
-## Create links
+
+### Create links
+```json
+near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "URI", "title": "TITLE", "description":"DESCRIPTION", "image_uri": "IMAGE_PRIVATE_IF_PREMIUM", "image_preview_uri" : "ALWAYS_PUBLIC", "is_public" : true|false, "is_premium" : true|false, "price" : 1 /* Price in NEAR */ }'
 ```
-near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://github.com/joaquimley", "title": "GitHub", "description":"My GitHub profile page", "image_uri": "https://github.githubassets.com/images/modules/logos_page/Octocat.png", "is_public":true, "is_premium":false }'
 
+------------------
+## Example links
 
-near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://linkedin.com/in/joaquimley", "title": "LinkedIn", "description":"My premium linkedin page", "image_uri": "https://cdn-icons-png.flaticon.com/512/174/174857.png", "is_public":true, "is_premium":true, "image_preview_uri":"https://cdn.icon-icons.com/icons2/2428/PNG/512/linkedin_black_logo_icon_147114.png", "price":1 }'
+**GitHub**
+```json
+near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://github.com/joaquimley", "title": "GitHub", "description":"My GitHub profile page", "image_uri": "https://github.githubassets.com/images/modules/logos_page/Octocat.png", "is_public" : true, "is_premium" : false }'
+```
 
+**LinkedIn** (Premium costs 1 NEAR to unlock)**
+```json
+near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://linkedin.com/in/joaquimley", "title": "LinkedIn", "description":"My premium linkedin page", "image_uri": "https://cdn-icons-png.flaticon.com/512/174/174857.png", "is_public":true, "is_premium" : true, "image_preview_uri":"https://cdn.icon-icons.com/icons2/2428/PNG/512/linkedin_black_logo_icon_147114.png", "price" : 1 }'
+```
 
-near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://google.com", "title": "Google", "description":"Google main page", "image_uri": "https://logoeps.com/wp-content/uploads/2011/02/google-logo-vector.png", "is_public":true, "is_premium":true, "image_preview_uri":"https://cdn.freebiesupply.com/logos/large/2x/google-g-2015-logo-png-transparent.png", "price":1 }'
-
+**NEAR.org** (Premium costs 4 NEAR to unlock)
+```json
+near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://near.org", "title": "NEAR", "description":"NEAR is on a mission to empower everyone to take back control of their money, their data, and their identity.", "image_uri": "https://research.binance.com/static/images/projects/near-protocol/logo.png", "is_public" : true, "is_premium" : true, "image_preview_uri": "https://near.org/wp-content/uploads/2021/09/brand-horizontal-rev-300x300.png", "price" : 4 }'
 ```
