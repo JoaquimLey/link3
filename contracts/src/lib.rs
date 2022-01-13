@@ -60,7 +60,7 @@ impl Link3 {
     }
 
     /****************
-     * READ METHODS *
+     * VIEW METHODS *
      ****************/
     pub fn info(&self) -> (String, String, Option<String>) {
         if !self.is_published {

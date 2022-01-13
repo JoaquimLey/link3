@@ -39,18 +39,7 @@ impl Item {
     }
 
     /****************
-     * CALL METHODS *
-     ****************/
-    pub fn set_published(&mut self, is_published: bool) {
-        if env::current_account_id() != env::predecessor_account_id() {
-            env::panic(b"Only the owner can change the is_published state");
-        }
-
-        self.is_published = is_published;
-    }
-
-    /****************
-     * READ METHODS *
+     * VIEW METHODS *
      ****************/
     pub fn id(&self) -> u64 {
         self.id
@@ -65,12 +54,23 @@ impl Item {
             env::panic(b"Can't read an item that is not public.");
         }
 
-        // Not verifing access for v1, if it is public it has acess
-        // Chaning here soo there is no need to change the Item's implementation
+        // Not verifing access for v1, if it is public it has access
+        // Changing here so there is no need to change the ItemInfo's implementation
         // let has_access = !self.is_premium || Item::has_access(self);
 
         let has_access = true;
         ItemInfo::map(self, has_access)
+    }
+
+    /****************
+     * CALL METHODS *
+     ****************/
+    pub fn set_published(&mut self, is_published: bool) {
+        if env::current_account_id() != env::predecessor_account_id() {
+            env::panic(b"Only the owner can change the is_published state");
+        }
+
+        self.is_published = is_published;
     }
 
     /************
@@ -78,8 +78,8 @@ impl Item {
      ************/
 }
 
-// Helper Strut to return info of Items and hide some when there's no access
-// redudant for v1.
+// Helper Strut to return only the allowed info of Items (hide some when there's no access)
+// Redudant for v1.
 #[derive(BorshSerialize, BorshDeserialize, PanicOnDefault, Serialize)]
 pub struct ItemInfo {
     pub id: u64,
@@ -100,7 +100,11 @@ impl ItemInfo {
             },
             title: from.title.clone(),
             description: from.description.clone(),
-            image: from.image_uri.clone(),
+            image: if has_access {
+                from.image_uri.clone()
+            } else {
+                None // from.image_preview_uri.clone()
+            },
         }
     }
 }
@@ -211,4 +215,6 @@ mod tests {
         assert_eq!(item_info.description, item.description);
         assert_eq!(item_info.image, item.image_uri);
     }
+
+    // Missing test item_info maps correctly when has_access is false
 }
