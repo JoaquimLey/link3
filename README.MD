@@ -80,22 +80,22 @@ near view $CONTRACT_NAME list_accessable
 ## Create a link/item
 
 ```bash
-near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "URI", "title": "TITLE", "description":"DESCRIPTION", "image_uri": "IMAGE_PRIVATE_IF_PREMIUM", "image_preview_uri" : "ALWAYS_PUBLIC", "is_public" : true|false, "is_premium" : true|false, "price" : 1 /* If premium, price in NEAR */ }'
+near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "URI", "title": "TITLE", "description":"DESCRIPTION", "image_uri": "IMAGE_PRIVATE_IF_PREMIUM", "image_preview_uri" : "ALWAYS_PUBLIC", "is_published" : true|false, "is_premium" : true|false, "price" : 1 /* If premium, price in NEAR */ }'
 ```
 
 ## Example links
 
 **GitHub**
 ```bash
-near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://github.com/joaquimley", "title": "GitHub", "description":"My GitHub profile page", "image_uri": "https://github.githubassets.com/images/modules/logos_page/Octocat.png", "is_public" : true, "is_premium" : false }'
+near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://github.com/joaquimley", "title": "GitHub", "description":"My GitHub profile page", "image_uri": "https://github.githubassets.com/images/modules/logos_page/Octocat.png", "is_published" : true, "is_premium" : false }'
 ```
 
 **LinkedIn** (Premium costs 1 NEAR to unlock)
 ```bash
-near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://linkedin.com/in/joaquimley", "title": "LinkedIn", "description":"My premium linkedin page", "image_uri": "https://cdn-icons-png.flaticon.com/512/174/174857.png", "is_public":true, "is_premium" : true, "image_preview_uri":"https://cdn.icon-icons.com/icons2/2428/PNG/512/linkedin_black_logo_icon_147114.png", "price" : 1 }'
+near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://linkedin.com/in/joaquimley", "title": "LinkedIn", "description":"My premium linkedin page", "image_uri": "https://cdn-icons-png.flaticon.com/512/174/174857.png", "is_published":true, "is_premium" : true, "image_preview_uri":"https://cdn.icon-icons.com/icons2/2428/PNG/512/linkedin_black_logo_icon_147114.png", "price" : 1 }'
 ```
 
 **NEAR.org** (Premium costs 4 NEAR to unlock)
 ```bash
-near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://near.org", "title": "NEAR", "description":"NEAR is on a mission to empower everyone to take back control of their money, their data, and their identity.", "image_uri": "https://research.binance.com/static/images/projects/near-protocol/logo.png", "is_public" : true, "is_premium" : true, "image_preview_uri": "https://near.org/wp-content/uploads/2021/09/brand-horizontal-rev-300x300.png", "price" : 4 }'
+near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://near.org", "title": "NEAR", "description":"NEAR is on a mission to empower everyone to take back control of their money, their data, and their identity.", "image_uri": "https://research.binance.com/static/images/projects/near-protocol/logo.png", "is_published" : true, "is_premium" : true, "image_preview_uri": "https://near.org/wp-content/uploads/2021/09/brand-horizontal-rev-300x300.png", "price" : 4 }'
 ```
