@@ -359,7 +359,7 @@ pub struct ItemInfo {
     pub uri: Option<String>,
     pub title: String,
     pub description: String,
-    pub image_uri: Option<String>,
+    pub image: Option<String>,
     pub price: Option<Balance>,
 }
 
@@ -374,7 +374,7 @@ impl ItemInfo {
             },
             title: from.title.clone(),
             description: from.description.clone(),
-            image_uri: if has_access {
+            image: if has_access {
                 from.image_uri.clone()
             } else {
                 from.image_preview_uri.clone()

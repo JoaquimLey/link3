@@ -29,12 +29,10 @@
 ## Compile for release
 ```
 RUSTFLAGS='-C link-arg=-s' cargo build --target wasm32-unknown-unknown --release
-
 ```
 ## Deploy to devnet
-```
+```json
 near dev-deploy --wasmFile target/wasm32-unknown-unknown/release/link3.wasm --initFunction new --initArgs '{"title": "My first Link3", "description": "Wow such description much detail", "image_uri": "https://cryptomonday.de/uploads/2021/10/7a97kbmm-300x185.jpg" }' --initDeposit 1
-
 ````
 
 ### Load dev account ENV variable
@@ -61,30 +59,30 @@ near view $CONTRACT_NAME method_name
 near call $CONTRACT_NAME method_name '{ "param": "value" }' --amount 1
 ```
 
-# Link3 contract API
+# Contract API
 
 List item as `ItemInfo`, if user has access it will have the `uri` and `image`, otherwise the `uri` will be `null` and the returned  `image` will be the `image_preview`.
-```
+```bash
 near view $CONTRACT_NAME list
 ```
 
 ### List all links that are public and not premium
-```
+```bash
 near view $CONTRACT_NAME list_public
 ```
 
 ### List all links the caller has access to
-```
+```bash
 near view $CONTRACT_NAME list_accessable
 ```
 
 
-### Create links
+## Create a link/item
+
 ```json
-near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "URI", "title": "TITLE", "description":"DESCRIPTION", "image_uri": "IMAGE_PRIVATE_IF_PREMIUM", "image_preview_uri" : "ALWAYS_PUBLIC", "is_public" : true|false, "is_premium" : true|false, "price" : 1 /* Price in NEAR */ }'
+near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "URI", "title": "TITLE", "description":"DESCRIPTION", "image_uri": "IMAGE_PRIVATE_IF_PREMIUM", "image_preview_uri" : "ALWAYS_PUBLIC", "is_public" : true|false, "is_premium" : true|false, "price" : 1 /* If premium, price in NEAR */ }'
 ```
 
-------------------
 ## Example links
 
 **GitHub**
@@ -92,7 +90,7 @@ near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "URI",
 near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://github.com/joaquimley", "title": "GitHub", "description":"My GitHub profile page", "image_uri": "https://github.githubassets.com/images/modules/logos_page/Octocat.png", "is_public" : true, "is_premium" : false }'
 ```
 
-**LinkedIn** (Premium costs 1 NEAR to unlock)**
+**LinkedIn** (Premium costs 1 NEAR to unlock)
 ```json
 near call $CONTRACT_NAME --accountId $CONTRACT_NAME create_link '{ "uri": "https://linkedin.com/in/joaquimley", "title": "LinkedIn", "description":"My premium linkedin page", "image_uri": "https://cdn-icons-png.flaticon.com/512/174/174857.png", "is_public":true, "is_premium" : true, "image_preview_uri":"https://cdn.icon-icons.com/icons2/2428/PNG/512/linkedin_black_logo_icon_147114.png", "price" : 1 }'
 ```
