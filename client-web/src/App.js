@@ -215,6 +215,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
               <span>{window.location.host}/{currentUser.accountId}</span>
               <img
                 src={copyicon}
+                alt="Copy to clipboard"
                 className='h-4 w-4 cursor-pointer'
                 onClick={(copyText())} />
             </p>
