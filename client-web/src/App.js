@@ -61,7 +61,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
 
   const CreateLink3Form = () => {
     return (
-      <form className=" max-w-4xl w-full mx-auto shadow-xl bg-gray-700 px-8 py-4 rounded-lg flex flex-col" onSubmit={formikLink3.handleSubmit}>
+      <form className=" max-w-2xl w-full mx-auto shadow-xl bg-gray-700 px-8 py-4 rounded-lg flex flex-col" onSubmit={formikLink3.handleSubmit}>
         <label
           className="mt-2 block text-white text-sm font-bold mb-2"
           htmlFor="title">Title</label>
@@ -88,7 +88,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
 
         <label
           className="mt-2 block text-white text-sm font-bold mb-2"
-          htmlFor="image_uri">Image URL</label>
+          htmlFor="image_uri">Profile pic URL</label>
         <input
           className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
           id="image_uri"
@@ -176,6 +176,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
   const renderCreateUserLink3Container = () => {
     return (
       <div className="pt-12">
+        <p className='text-center text-4xl font-bold mb-4'>Let's start by creating your Link3 profile</p>
         {CreateLink3Form()}
       </div>
     )
