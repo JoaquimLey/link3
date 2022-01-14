@@ -396,9 +396,9 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
               src={logo} className='cursor-pointer h-16 mx-auto rounded-full' alt="Link3" />
             <div><p className="text-3xl">Link3</p>
               <div className="hidden lg:block items-center justify-start text-xs">
-                <p>Contract id:</p>
+                <p>Contract id ({nearConfig.networkId}):</p>
                 <a
-                  href={"https://explorer.testnet.near.org/accounts/" + contract.contractId}
+                  href={"https://explorer" + (nearConfig.networkId === 'mainnet' ? '' : "." + nearConfig.networkId) + ".near.org/accounts/" + contract.contractId}
                   className="underline">{contract.contractId}</a>
               </div>
             </div>
