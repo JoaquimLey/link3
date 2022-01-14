@@ -185,22 +185,31 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
   const renderUserLink3Container = () => {
     return (
       <div className="flex pt-10 w-full  justify-around space-x-8">
-        <div className="w-full max-w-xl p-4 text-white text-center rounded-lg border">
-          <img src={userLink3.image_uri} className="mx-auto h-20 w-20 object-cover rounded-full" alt="Link3" />
-          <p className="mt-2 text-2xl font-bold">{userLink3.title}</p>
-          <p className="text-xl">{userLink3.description}</p>
-          <p className="mt-2 text-lg font-bold">{userLink3.owner}</p>
-          {(userLink3.links.length > 0) ?
-            <div className="mt-8 space-y-4 flex flex-col overflow-scroll">
-              {userLink3.links.map(item => (
-                <a key={item.id} href={item.uri} className="border-2 font-bold py-4 rounded-md transform duration-500 ease-in-out hover:bg-white hover:text-gray-800">
-                  {item.image_uri && item.image_uri.length > 0 && <img className='bg-white rounded-full mx-auto w-6 h-6' src={item.image_uri} alt="Item" />}
-                  <p>{item.title}</p>
-                  <p className="text-xs">{item.description}</p>
-                </a>
-              ))}
-            </div> : <p className="py-8">Wow such empty.</p>
-          }
+        <div className='w-full max-w-xl '>
+          <div className="p-4 text-white text-center rounded-lg border">
+            <img src={userLink3.image_uri} className="mx-auto h-20 w-20 object-cover rounded-full" alt="Link3" />
+            <p className="mt-2 text-2xl font-bold">{userLink3.title}</p>
+            <p className="text-xl">{userLink3.description}</p>
+            <p className="mt-2 text-lg font-bold">{userLink3.owner}</p>
+            {(userLink3.links.length > 0) ?
+              <div className="mt-8 space-y-4 flex flex-col overflow-scroll">
+                {userLink3.links.map(item => (
+                  <a key={item.id} href={item.uri} className="border-2 font-bold py-4 rounded-md transform duration-500 ease-in-out hover:bg-white hover:text-gray-800">
+                    {item.image_uri && item.image_uri.length > 0 && <img className='bg-white rounded-full mx-auto w-6 h-6' src={item.image_uri} alt="Item" />}
+                    <p>{item.title}</p>
+                    <p className="text-xs">{item.description}</p>
+                  </a>
+                ))}
+              </div> : <p className="py-8">Wow such empty.</p>
+            }
+          </div>
+          <div className='mt-4'>
+            <p className='text-center'>Share your link3</p>
+            
+            <p className='px-8 py-4 rounded-lg bg-gray-400 text-gray-800 font-bold text-center'>
+            {window.location.host}/
+              {currentUser.accountId}</p>
+          </div>
         </div>
 
         <div className="bg-gray-700 rounded-lg px-8 py-4 space-y-4 max-w-xl w-full">
