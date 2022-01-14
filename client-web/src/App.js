@@ -54,6 +54,17 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
     setIsSignInLoading(false)
   };
 
+  const toHome = () => {
+    if (window.location.pathname !== '/') {
+      window.location = '/'
+    }
+  }
+
+  const copyText = () => {
+    toast.success('Copied to clipboard')
+    navigator.clipboard.writeText(window.location.host + '/' + currentUser.accountId)
+  }
+
   // useEffects
   useEffect(() => {
     if (window.location.pathname !== '/') {
@@ -97,17 +108,6 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
         {CreateLink3Form()}
       </div>
     )
-  }
-
-  const toHome = () => {
-    if (window.location.pathname !== '/') {
-      window.location = '/'
-    }
-  }
-
-  const copyText = () => {
-    toast.success('Copied to clipboard')
-    navigator.clipboard.writeText(window.location.host + '/' + currentUser.accountId)
   }
 
   const renderUserLink3Container = () => {
@@ -426,6 +426,8 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
       </div >
     )
   }
+
+  // Hacky set title
   document.title = 'link3'
   return (
     <div className="bg-gray-800 min-h-screen flex flex-col justify-between text-white">
