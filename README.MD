@@ -7,7 +7,7 @@
 
 - Most (if not all) of the frontend code is throwaway to simply make it "work".
 
-
+![Logo](./client-web/src/link3_logo.svg) 
 # Link3
 
 - [x] Create Links (similar to linktree)
