@@ -55,7 +55,7 @@ Check if it was correctly loaded
 echo $CONTRACT_NAME
 ```
 
-Should print the dev account:
+Should print the dev account id (something like this):
 ```bash
 dev-1642022356114-95915049874087
 ````
@@ -75,9 +75,9 @@ _`near-cli` Call methods require an account id to be specified (use --accountId 
 # Contract
 
 ## `VIEW` methods
-### List all links that are published mapped as `ItemInfo`
+### Fetching a Link3 profile by `account_id`
 ```bash
-near view $CONTRACT_NAME get '{ "account_id" : "some_account.testnet'
+near view $CONTRACT_NAME get '{ "account_id" : "some_account.testnet" }'
 ```
 
 ## `CALL` methods
@@ -87,7 +87,7 @@ near view $CONTRACT_NAME get '{ "account_id" : "some_account.testnet'
 near call $CONTRACT_NAME --accountId $YOU_ACCOUNT_ID create '{ "title": "TITLE", "description":"DESCRIPTION", "image_uri": "IMAGE_URL", "is_published" : true|false }'
 ```
 
-## Create a link item to the `signer_account_id` Link3
+## Create a link item for the `signer_account_id` Link3 profile
 
 ```bash
 near call $CONTRACT_NAME --accountId $YOU_ACCOUNT_ID add_link '{ "uri": "URI", "title": "TITLE", "description":"DESCRIPTION", "image_uri": "IMAGE_URL", "is_published" : true|false }'
