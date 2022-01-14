@@ -1,6 +1,11 @@
 ### 🚨 Under HEAVY development
-The current state of the project is under heavy development, the APIs might change, this is the first projec that I'm doing to learn react, rust and the NEAR protocol.
-Most (if not all) of the frontend code is throwaway to simply make it "work".
+
+- The current state of the project is under heavy development, the APIs might change, this is the first project that I'm writing, using it to learn react, rust and the NEAR protocol. 
+  
+- Literelly the submission for the [NEAR Certified Developer I course](https://www.near.university/courses/near-certified-developer-i), so if you are reading this project to learn any of the tech mentioned above, take everything with a huge grain of slat.
+
+
+- Most (if not all) of the frontend code is throwaway to simply make it "work".
 
 
 # Link3
@@ -9,12 +14,12 @@ Most (if not all) of the frontend code is throwaway to simply make it "work".
 
 - [ ] Allow to add categories to links
 
-- [ ] - Allow to charge/buy to reveal link `uri` (Gated content)
+- [ ] Allow to charge/buy to reveal link `uri` (Gated content)
 
-- [ ] - Allow to hide the link for certain wallet(s) - ban
+- [ ] Allow to hide the link for certain wallet(s) - ban
 
 ### Extras
-- [ ] - Expires (becomes invalid after X timestamp)
+- [ ] Expirity (becomes invalid after X timestamp)
 - [ ] Category metadata
 
 ### Maybe
@@ -63,7 +68,7 @@ There are two types of interactions with the contract: `view` or `call`
 near view $CONTRACT_NAME method_name
 
 // Call a function (passing 1 NEAR)
-near call $CONTRACT_NAME -accountId $ACCOUNT_ID method_name '{ "param": "value" }' --amount 1
+near call $CONTRACT_NAME --accountId $ACCOUNT_ID method_name '{ "param": "value" }' --amount 1
 ```
 _`near-cli` Call methods require an account id to be specified (use --accountId or --account_id)_
 
@@ -75,14 +80,14 @@ _`near-cli` Call methods require an account id to be specified (use --accountId 
 near view $CONTRACT_NAME get '{ "account_id" : "some_account.testnet'
 ```
 
-## [CALL] methods
+## `CALL` methods
 
-### Creates a Link3 for the `signer_account_id`
+### Creates a Link3 profile for the `signer_account_id`
 ```bash
 near call $CONTRACT_NAME --accountId $YOU_ACCOUNT_ID create '{ "title": "TITLE", "description":"DESCRIPTION", "image_uri": "IMAGE_URL", "is_published" : true|false }'
 ```
 
-## Create a link item
+## Create a link item to the `signer_account_id` Link3
 
 ```bash
 near call $CONTRACT_NAME --accountId $YOU_ACCOUNT_ID add_link '{ "uri": "URI", "title": "TITLE", "description":"DESCRIPTION", "image_uri": "IMAGE_URL", "is_published" : true|false }'
