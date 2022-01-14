@@ -24,9 +24,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
   const fetchUserLink3 = useCallback(async () => {
     if (currentUser) {
       const link3 = await contract.get({ account_id: currentUser.accountId });
-      if (link3) {
-        setUserLink3(link3)
-      }
+      setUserLink3(link3)
       setIsUserLink3Loaded(true)
       console.log('link3: ', link3)
     }
@@ -377,6 +375,11 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
             </div> : <p className="py-8">Wow such empty.</p>
           }
         </div>
+        {!userLink3 &&
+          <div className='mt-4 w-full flex justify-center items-center'>
+            <button onClick={toHome} className='text-2xl px-4 py-2 border rounded-lg hover:bg-white hover:text-gray-800 transform ease-in-out duration-500'>create your link3</button>
+          </div>
+        }
       </div>
     )
   }
