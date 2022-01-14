@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import "regenerator-runtime/runtime";
 import { useFormik } from 'formik';
 import Big from "big.js";
@@ -42,89 +43,6 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
       console.log('setOtherLink3: ', link3)
     }
   }, [currentUser, contract]);
-
-  const formikLink3 = useFormik({
-    initialValues: {
-      title: "",
-      description: "",
-      image_uri: "",
-      is_published: true,
-    },
-
-    onSubmit: async values => {
-      setIsCreateLinkLoading(true)
-      await contract.create(values, BOATLOAD_OF_GAS)
-      setIsCreateLinkLoading(false)
-      fetchUserLink3()
-      formik.resetForm()
-    },
-  });
-
-  const CreateLink3Form = () => {
-    return (
-      <form className="max-w-2xl w-full mx-auto shadow-xl bg-gray-700 px-8 py-4 rounded-lg flex flex-col" onSubmit={formikLink3.handleSubmit}>
-        <label
-          className="mt-2 block text-white text-sm font-bold mb-2"
-          htmlFor="title">Title</label>
-        <input
-          className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
-          id="title"
-          name="title"
-          type="text"
-          onChange={formikLink3.handleChange}
-          value={formikLink3.values.title}
-        />
-
-        <label
-          className="mt-2 block text-white text-sm font-bold mb-2"
-          htmlFor="description">Description</label>
-        <input
-          className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
-          id="description"
-          name="description"
-          type="text"
-          onChange={formikLink3.handleChange}
-          value={formikLink3.values.description}
-        />
-
-        <label
-          className="mt-2 block text-white text-sm font-bold mb-2"
-          htmlFor="image_uri">Profile pic URL</label>
-        <input
-          className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
-          id="image_uri"
-          name="image_uri"
-          type="link"
-          onChange={formikLink3.handleChange}
-          value={formikLink3.values.image_uri}
-        />
-
-        {/* <div className="mt-4 pb-4 border-b flex space-x-2 items-center">
-          <label
-            className="cursor-pointer  block text-white text-sm font-bold"
-            htmlFor="is_published">Published</label>
-          <input
-            className='cursor-pointer '
-            id="is_published"
-            name="is_published"
-            type="checkbox"
-            onChange={formik.handleChange}
-            value={formik.values.is_published}
-          />
-        </div> */}
-
-
-        <button type="submit"
-          className="mt-6 flex items-center justify-center space-x-1 bg-pink-500 ease-in-out transform duration-700 hover:bg-pink-300 px-8 py-4 rounded-lg font-bold"
-        >
-          <p>Create</p>
-          <img src={nearLogo}
-            className={`h-6 ${isCreateLinkLoading ? "animate-spin" : ""}`} alt="NEAR loading" />
-        </button>
-      </form>
-    );
-  };
-
 
   const signIn = () => {
     setIsSignInLoading(true)
@@ -183,7 +101,14 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
     )
   }
 
+  const toHome = () => {
+    if (window.location.pathname !== '/') {
+      window.location = '/'
+    }
+  }
+
   const copyText = () => {
+    toast.success('Copied to clipboard')
     navigator.clipboard.writeText(window.location.host + '/' + currentUser.accountId)
   }
 
@@ -205,7 +130,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
                     <p className="text-xs">{item.description}</p>
                   </a>
                 ))}
-              </div> : <p className="py-8">Wow such empty.</p>
+              </div> : <p className="mt-10 px-8 py-8 bg-gray-700 rounded-lg">Wow such empty 🐶<br />Start by creating a new link.</p>
             }
           </div>
           <div className='mt-4 px-8 lg:px-0'>
@@ -217,7 +142,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
                 src={copyicon}
                 alt="Copy to clipboard"
                 className='h-4 w-4 cursor-pointer'
-                onClick={(copyText())} />
+                onClick={copyText} />
             </p>
           </div>
         </div>
@@ -230,6 +155,103 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
     )
   }
 
+  const formikLink3 = useFormik({
+    initialValues: {
+      title: "",
+      description: "",
+      image_uri: "",
+      is_published: true,
+    },
+
+    onSubmit: async values => {
+      try {
+        if (isCreateLinkLoading) {
+          return;
+        }
+        const createPromise = contract.create(values, BOATLOAD_OF_GAS)
+        setIsCreateLinkLoading(true)
+        await toast.promise(createPromise,
+          {
+            loading: 'Creating...',
+            success: <b>Link3 created!</b>,
+            error: <b>Could not create.</b>,
+          }
+        );
+        setIsCreateLinkLoading(false)
+        fetchUserLink3()
+        formik.resetForm()
+      } catch (e) {
+        console.log('Failed to create toast ', e)
+        setIsCreateLinkLoading(false)
+      }
+    },
+  });
+
+  const CreateLink3Form = () => {
+    return (
+      <form className="max-w-2xl w-full mx-auto shadow-xl bg-gray-700 px-8 py-4 rounded-lg flex flex-col" onSubmit={formikLink3.handleSubmit}>
+        <label
+          className="mt-2 block text-white text-sm font-bold mb-2"
+          htmlFor="title">Title</label>
+        <input
+          className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
+          id="title"
+          name="title"
+          type="text"
+          onChange={formikLink3.handleChange}
+          value={formikLink3.values.title}
+        />
+
+        <label
+          className="mt-2 block text-white text-sm font-bold mb-2"
+          htmlFor="description">Description</label>
+        <input
+          className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
+          id="description"
+          name="description"
+          type="text"
+          onChange={formikLink3.handleChange}
+          value={formikLink3.values.description}
+        />
+
+        <label
+          className="mt-2 block text-white text-sm font-bold mb-2"
+          htmlFor="image_uri">Profile pic URL</label>
+        <input
+          className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
+          id="image_uri"
+          name="image_uri"
+          type="link"
+          onChange={formikLink3.handleChange}
+          value={formikLink3.values.image_uri}
+        />
+
+        {/* <div className="mt-4 pb-4 border-b flex space-x-2 items-center">
+          <label
+            className="cursor-pointer  block text-white text-sm font-bold"
+            htmlFor="is_published">Published</label>
+          <input
+            className='cursor-pointer '
+            id="is_published"
+            name="is_published"
+            type="checkbox"
+            onChange={formik.handleChange}
+            value={formik.values.is_published}
+          />
+        </div> */}
+
+
+        <button type="submit"
+          className={`${isCreateLinkLoading ? "bg-gray-500 cursor-not-allowed" : "bg-pink-500  hover:bg-pink-300"} mt-6 flex items-center justify-center space-x-1 ease-in-out transform duration-700 px-8 py-4 rounded-lg font-bold`}
+        >
+          <p>Create</p>
+          <img src={nearLogo}
+            className={`h-6 ${isCreateLinkLoading ? "animate-spin" : ""}`} alt="NEAR loading" />
+        </button>
+      </form>
+    );
+  };
+
   const formik = useFormik({
     initialValues: {
       uri: "",
@@ -240,8 +262,18 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
     },
 
     onSubmit: async values => {
+      if (isCreateLinkLoading) {
+        return;
+      }
+      const createPromise = contract.add_link(values, BOATLOAD_OF_GAS)
       setIsCreateLinkLoading(true)
-      await contract.add_link(values, BOATLOAD_OF_GAS)
+      await toast.promise(createPromise,
+        {
+          loading: 'Creating...',
+          success: <b>Link created!</b>,
+          error: <b>Could not create link.</b>,
+        }
+      );
       setIsCreateLinkLoading(false)
       fetchUserLink3()
       formik.resetForm()
@@ -315,9 +347,9 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
 
 
         <button type="submit"
-          className="mt-6 flex items-center justify-center space-x-1 bg-pink-500 ease-in-out transform duration-700 hover:bg-pink-300 px-8 py-4 rounded-lg font-bold"
+          className={`${isCreateLinkLoading ? "bg-gray-500 cursor-not-allowed" : "bg-pink-500  hover:bg-pink-300"} mt-6 flex items-center justify-center space-x-1 ease-in-out transform duration-700 px-8 py-4 rounded-lg font-bold`}
         >
-          <p>Create</p>
+          <p className={`${isCreateLinkLoading ? "hidden" : "block"}`}>Create</p>
           <img src={nearLogo}
             className={`h-6 ${isCreateLinkLoading ? "animate-spin" : ""}`} alt="NEAR loading" />
         </button>
@@ -354,7 +386,11 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
       <div className=" text-white space-y-4">
         {/* NAVBAR_START */}
         <div className="px-4 py-4 shadow-xl flex items-center justify-between">
-          <div className="flex items-center space-x-4"><img src={logo} className='h-16 mx-auto rounded-full' alt="Link3" />
+          <div className="flex items-center space-x-4">
+
+            <img
+              onClick={toHome}
+              src={logo} className='cursor-pointer h-16 mx-auto rounded-full' alt="Link3" />
             <div><p className="text-3xl">Link3</p>
               <a
                 href={"https://explorer.testnet.near.org/accounts/" + contract.contractId}
@@ -381,6 +417,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
 
             <div className='pt-12 text-center'>
               <p className='text-2xl'>Link3 for <span className='font-bold underline'>{window.location.pathname.slice(1)}</span> not found.</p>
+              <button onClick={toHome} className='mt-8 text-lg underline'>to home</button>
             </div>
         }
       </div >
@@ -389,6 +426,10 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
   document.title = 'link3'
   return (
     <div className="bg-gray-800 min-h-screen flex flex-col justify-between text-white">
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+      />
       {currentUser ? renderLoggedInContainer() : renderLoggedOutContainer()}
       {/* Footer */}
       <div className="mt-20 mx-auto w-full text-center py-4 flex items-center justify-center space-x-2">

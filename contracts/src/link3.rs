@@ -27,9 +27,9 @@ impl Link3 {
         image_uri: Option<String>,
         is_published: Option<bool>,
     ) -> Self {
-        if env::state_exists() {
-            env::panic(b"The contract is already initialized");
-        }
+        // if env::state_exists() {
+        //     env::panic(b"The contract is already initialized");
+        // }
 
         log!(
             "Creating new Link3 contract with account id: {} and deposite of: {}",
