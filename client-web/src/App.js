@@ -204,16 +204,16 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
             }
           </div>
           <div className='mt-4'>
-            <p className='text-center'>Share your link3</p>
+            <p className='text-center mb-2 font-semibold'>Share your link3</p>
             
             <p className='px-8 py-4 rounded-lg bg-gray-400 text-gray-800 font-bold text-center'>
-            {window.location.host}/
+            https://{window.location.host}/
               {currentUser.accountId}</p>
           </div>
         </div>
 
         <div className="bg-gray-700 rounded-lg px-8 py-4 space-y-4 max-w-xl w-full">
-          <h3 className="text-center font-semibold text-lg">Create link</h3>
+          <h3 className="text-center font-semibold text-lg">Create a link</h3>
           {CreateLinkForm()}
         </div>
       </div>
