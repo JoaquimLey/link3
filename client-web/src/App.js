@@ -26,7 +26,6 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
       const link3 = await contract.get({ account_id: currentUser.accountId });
       setUserLink3(link3)
       setIsUserLink3Loaded(true)
-      console.log('link3: ', link3)
     }
   }, [currentUser, contract]);
 
@@ -120,7 +119,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
             <p className="text-xl">{userLink3.description}</p>
             <p className="mt-2 text-lg font-bold">{userLink3.owner}</p>
             {(userLink3.links.length > 0) ?
-              <div className="mt-8 space-y-4 flex flex-col overflow-scroll">
+              <div className="mt-8 space-y-4 flex flex-col">
                 {userLink3.links.map(item => (
                   <a key={item.id} href={item.uri} className="border-2 font-bold py-4 rounded-md transform duration-500 ease-in-out hover:bg-white hover:text-gray-800">
                     {item.image_uri && item.image_uri.length > 0 && <img className='bg-white rounded-full mx-auto w-6 h-6' src={item.image_uri} alt="Item" />}
@@ -364,7 +363,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
           <p className="text-xl">{otherLink3.description}</p>
           <p className="mt-2 text-lg font-bold">{otherLink3.owner}</p>
           {(otherLink3.links.length > 0) ?
-            <div className="mt-8 space-y-4 flex flex-col overflow-scroll">
+            <div className="mt-8 space-y-4 flex flex-col">
               {otherLink3.links.map(item => (
                 <a key={item.id} href={item.uri} className="border-2 font-bold py-4 rounded-md transform duration-500 ease-in-out hover:bg-white hover:text-gray-800">
                   {item.image_uri && item.image_uri.length > 0 && <img className='bg-white rounded-full mx-auto w-6 h-6' src={item.image_uri} alt="Item" />}
