@@ -1,7 +1,7 @@
 // This file was copy pasted from near-example's repository
 // https://github.com/near-examples/counter/blob/master/src/config.js
 
-const CONTRACT_NAME = process.env.CONTRACT_NAME || 'link3.testnet';
+const CONTRACT_NAME = process.env.CONTRACT_NAME || 'dev-1642129059286-29231299102448';
 
 function getConfig(env) {
   switch(env) {

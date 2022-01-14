@@ -1,147 +1,95 @@
-use std::convert::TryFrom;
-use std::vec;
 // To conserve gas, efficient serialization is achieved through Borsh (http://borsh.io/)
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, log, near_bindgen, AccountId, Balance, PanicOnDefault};
+use near_sdk::collections::LookupMap;
+use near_sdk::{env, near_bindgen, AccountId};
 // Crates
-use crate::item::Item;
-use crate::item::ItemInfo;
+use crate::link3::Link3;
 mod item;
+mod link3;
 
 near_sdk::setup_alloc!();
 
 #[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
-pub struct Link3 {
-    title: String,
-    description: String,
-    image_uri: Option<String>,
-    owner_account_id: AccountId,
-    links: Vec<Item>,
-    is_published: bool,
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct MainHub {
+    hub: LookupMap<AccountId, Link3>,
 }
 
-// Core Logic/Implementation
-#[near_bindgen]
-impl Link3 {
-    // Instantiate a new Item
-    #[init]
-    #[payable]
-    pub fn new(
-        title: String,
-        description: String,
-        image_uri: Option<String>,
-        is_published: Option<bool>,
-    ) -> Self {
-        if env::state_exists() {
-            env::panic(b"The contract is already initialized");
-        }
-
-        log!(
-            "Creating new Link3 contract with account id: {} and deposite of: {}",
-            env::current_account_id(),
-            env::attached_deposit()
-        );
-
-        // TODO: Make external/cross-contract call for the token cost of deploying a new link3 contract
-        let token_cost: Balance = 1;
-        if env::attached_deposit() < token_cost {
-            env::panic(b"A deposit of at least 1 token is required to create a Link3 contract");
-        }
-
-        Link3 {
-            title,
-            description,
-            image_uri,
-            owner_account_id: env::current_account_id(),
-            links: vec![],
-            is_published: is_published.unwrap_or(true),
+impl Default for MainHub {
+    fn default() -> Self {
+        Self {
+            hub: LookupMap::new(b"a".to_vec()),
         }
     }
+}
 
+#[near_bindgen]
+impl MainHub {
     /****************
      * VIEW METHODS *
      ****************/
-    pub fn info(&self) -> (String, String, Option<String>) {
-        if !self.is_published {
-            env::panic(b"This contract is not published");
-        }
-
-        (
-            self.title.clone(),
-            self.description.clone(),
-            self.image_uri.clone(),
-        )
-    }
-
-    pub fn list(&self) -> Vec<ItemInfo> {
-        if !self.is_published {
-            env::panic(b"This contract is not published");
-        }
-
-        let links_ref = &self.links;
-        links_ref
-            .iter()
-            .filter(|item| item.is_published())
-            .map(|item| item.read())
-            .collect()
+    pub fn get(&self, account_id: AccountId) -> Option<Link3> {
+        self.hub.get(&account_id)
     }
 
     /****************
      * CALL METHODS *
      ****************/
-    pub fn update_published_status(&mut self, is_published: bool) {
-        if env::predecessor_account_id() != self.owner_account_id {
-            env::panic(b"Only the owner can change published state");
+    pub fn create(
+        &mut self,
+        title: String,
+        description: String,
+        image_uri: Option<String>,
+        is_published: Option<bool>,
+    ) -> Link3 {
+        if Self::get(&self, env::signer_account_id()).is_some() {
+            env::panic(b"Can't create, account has Link3 already")
         }
 
-        if self.is_published != is_published {
-            self.is_published = is_published;
-        }
+        let link3 = Link3::new(title, description, image_uri, is_published);
+        self.hub.insert(&env::signer_account_id(), &link3);
+        
+        return link3;
     }
 
-    pub fn list_all(&self) -> Vec<Item> {
-        if env::predecessor_account_id() != self.owner_account_id {
-            env::panic(b"Only the owner can view all items.");
-        }
-        self.links.clone()
-    }
-
-    pub fn create_link(
+    pub fn add_link(
         &mut self,
         uri: String,
         title: String,
         description: String,
         image_uri: Option<String>,
-        is_published: bool,
-    ) -> &Item {
-        if env::predecessor_account_id() != self.owner_account_id {
-            env::panic(b"Only the owner can create a link");
-        }
+        is_published: Option<bool>,
+    ) {
+        let mut link3: Link3 = Self::get(&self, env::signer_account_id())
+            .unwrap_or_else(|| env::panic(b"Could not find link3 for this account."));
 
-        let id = u64::try_from(self.links.len() + 1).unwrap();
-        let item = Item::new(id, uri, title, description, image_uri, is_published);
+        // Add item
+        link3.create_link(
+            uri,
+            title,
+            description,
+            image_uri,
+            is_published.unwrap_or(true),
+        );
 
-        self.links.push(item);
-        // Return created item
-        &self.links[self.links.len() - 1]
+        // Save to hub state
+        self.hub.insert(&env::signer_account_id(), &link3);
     }
 }
 
 /*********
  * TESTS *
  *********/
-
 // use the attribute below for unit tests
 #[cfg(test)]
 mod tests {
     use super::*;
-    use near_sdk::MockedBlockchain;
     use near_sdk::{testing_env, VMContext};
+    use near_sdk::{Balance, MockedBlockchain};
 
     fn get_context(input: Vec<u8>, is_view: bool, deposit: Option<Balance>) -> VMContext {
         VMContext {
-            current_account_id: "alice.testnet".to_string(),
+            current_account_id: "contract.testnet".to_string(),
             signer_account_id: "alice.testnet".to_string(),
             signer_account_pk: vec![0, 1, 2],
             predecessor_account_id: "alice.testnet".to_string(),
@@ -160,333 +108,82 @@ mod tests {
         }
     }
 
-    fn get_alternative_context(
-        input: Vec<u8>,
-        is_view: bool,
-        deposit: Option<Balance>,
-    ) -> VMContext {
-        VMContext {
-            current_account_id: "alice.testnet".to_string(),
-            signer_account_id: "robert.testnet".to_string(),
-            signer_account_pk: vec![0, 1, 2],
-            predecessor_account_id: "robert.testnet".to_string(),
-            input,
-            block_index: 0,
-            block_timestamp: 0,
-            account_balance: 0,
-            account_locked_balance: 0,
-            storage_usage: 0,
-            attached_deposit: deposit.unwrap_or(0),
-            prepaid_gas: 10u64.pow(18),
-            random_seed: vec![0, 1, 2],
-            is_view,
-            output_data_receivers: vec![],
-            epoch_height: 19,
-        }
-    }
 
-    fn generate_contract(is_published: Option<bool>) -> Link3 {
-        Link3::new(
-            "This is an awesome title".to_string(),
-            "This is the perfect description".to_string(),
-            Some("image_uri".to_string()),
-            is_published,
-        )
+    fn get_alternative_context(
+      input: Vec<u8>,
+      is_view: bool,
+      deposit: Option<Balance>,
+  ) -> VMContext {
+      VMContext {
+          current_account_id: "contract.testnet".to_string(),
+          signer_account_id: "robert.testnet".to_string(),
+          signer_account_pk: vec![0, 1, 2],
+          predecessor_account_id: "robert.testnet".to_string(),
+          input,
+          block_index: 0,
+          block_timestamp: 0,
+          account_balance: 0,
+          account_locked_balance: 0,
+          storage_usage: 0,
+          attached_deposit: deposit.unwrap_or(0),
+          prepaid_gas: 10u64.pow(18),
+          random_seed: vec![0, 1, 2],
+          is_view,
+          output_data_receivers: vec![],
+          epoch_height: 19,
+      }
+  }
+
+    // mark individual unit tests with #[test] for them to be registered and fired
+    #[test]
+    fn create_link3_creates_with_correct_state() {
+        // Given
+        let context = get_context(vec![], false, Some(1));
+        testing_env!(context);
+        // When
+        let mut main = MainHub::default();
+        main.create("Hello".to_string(), "World".to_string(), None, Some(true));
+        // Then
+        let link3 = main.get("alice.testnet".to_string());
+        assert!(&link3.is_some());
+    }
+ #[test]
+    fn create_link3_multiple_adds_to_hub() {
+        // Given
+        let context = get_context(vec![], false, Some(1));
+        testing_env!(context);
+        // When
+        let mut main = MainHub::default();
+        main.create("Hello".to_string(), "World".to_string(), None, Some(true));
+        
+        let context_alternative = get_alternative_context(vec![], false, Some(1));
+        testing_env!(context_alternative);
+        main.create("Hello2".to_string(), "World2".to_string(), None, Some(true));
+
+        // Then
+        let link3 = main.get("robert.testnet".to_string());
+        assert!(&link3.is_some());
     }
 
     // mark individual unit tests with #[test] for them to be registered and fired
     #[test]
-    #[should_panic]
-    fn create_with_default_panics() {
+    fn add_link_saves_link_to_state() {
         // Given
         let context = get_context(vec![], false, Some(1));
         testing_env!(context);
-        // When
-        Link3::default();
-        // Then
-        // - Panics
-    }
 
-    #[test]
-    #[should_panic(
-        expected = "A deposit of at least 1 token is required to create a Link3 contract"
-    )]
-    fn init_without_deposit_panics() {
-        // Given
-        let context = get_context(vec![], false, None);
-        testing_env!(context);
+        let mut main = MainHub::default();
+        main.create("Hello".to_string(), "World".to_string(), None, Some(true));
         // When
-        Link3::new(
-            "This is an awesome title".to_string(),
-            "This is the perfect description".to_string(),
+        main.add_link(
+            "uri".to_string(),
+            "title".to_string(),
+            "description".to_string(),
             Some("image_uri".to_string()),
-            None,
+            Some(true),
         );
         // Then
-        // - Should panic
-    }
-
-    #[test]
-    fn init_creates_with_correct_state() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        // When
-        let contract = generate_contract(None);
-        // Then
-        assert_eq!(contract.title, "This is an awesome title".to_string());
-        assert_eq!(
-            contract.description,
-            "This is the perfect description".to_string()
-        );
-        assert_eq!(contract.image_uri, Some("image_uri".to_string()));
-        assert_eq!(contract.is_published, true);
-    }
-
-    #[test]
-    fn init_with_published_false_is_not_published() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        // When
-        let contract = generate_contract(Some(false));
-        // Then
-        assert_eq!(contract.is_published, false);
-    }
-
-    #[test]
-    fn get_info_returns_correct_state() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        let contract = generate_contract(None);
-        // When
-        let info = contract.info();
-        // Then
-        assert_eq!(info.0, contract.title);
-        assert_eq!(info.1, contract.description);
-        assert_eq!(info.2, contract.image_uri);
-    }
-
-    #[test]
-    #[should_panic(expected = "This contract is not published")]
-    fn get_info_panics_if_contract_is_not_published() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        // Create contract that is not published
-        let contract = generate_contract(Some(false));
-        // When
-        contract.info();
-        // Then
-        // - Should panic
-    }
-
-    #[test]
-    fn update_published_status_updates_state() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        let initial_is_published_value = false;
-        let mut contract = generate_contract(Some(initial_is_published_value));
-
-        // When
-        contract.update_published_status(!initial_is_published_value);
-
-        // Then
-        assert_eq!(
-            contract.is_published, !initial_is_published_value,
-            "Published status should've been updated"
-        );
-    }
-
-    #[test]
-    #[should_panic(expected = "Only the owner can change published state")]
-    fn update_published_status_with_wrong_owner_panics() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-
-        let initial_is_published_value = false;
-        let mut contract = generate_contract(Some(initial_is_published_value));
-
-        // When
-        let alterinative_context = get_alternative_context(vec![], false, None);
-        testing_env!(alterinative_context);
-        contract.update_published_status(!initial_is_published_value);
-
-        // Then
-        // - Should panic
-    }
-
-    #[test]
-    fn create_link_adds_link() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        let mut contract = generate_contract(Some(true));
-
-        // When
-        contract.create_link(
-            "some_uri".to_string(),
-            "some_title".to_string(),
-            "some_description".to_string(),
-            Some("image".to_string()),
-            true,
-        );
-
-        // Then
-        assert!(contract.list().len() == 1, "Should have at one item");
-    }
-
-    #[test]
-    #[should_panic(expected = "Only the owner can create a link")]
-    fn create_link_with_wrong_owner_panics() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        let mut contract = generate_contract(Some(true));
-
-        // When
-        let alterinative_context = get_alternative_context(vec![], false, None);
-        testing_env!(alterinative_context);
-        contract.create_link(
-            "some_uri".to_string(),
-            "some_title".to_string(),
-            "some_description".to_string(),
-            Some("image".to_string()),
-            true,
-        );
-        // Then
-        // - Should panic
-    }
-
-    #[test]
-    fn list_only_returns_published_links() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        let mut contract = generate_contract(Some(true));
-
-        // When
-        contract.create_link(
-            "some_uri".to_string(),
-            "some_title".to_string(),
-            "some_description".to_string(),
-            Some("image".to_string()),
-            true,
-        );
-
-        contract.create_link(
-            "another_some_uri".to_string(),
-            "another_some_title".to_string(),
-            "another_some_description".to_string(),
-            Some("another_image".to_string()),
-            true,
-        );
-
-        contract.create_link(
-            "pvt_some_uri".to_string(),
-            "pvt_some_title".to_string(),
-            "pvt_some_description".to_string(),
-            Some("pvt_another_image".to_string()),
-            false,
-        );
-
-        let result = contract.list();
-
-        // Then
-        assert_eq!(result.len(), 2, "Should've returned 2 elements");
-    }
-
-    #[test]
-    #[should_panic(expected = "This contract is not published")]
-    fn list_panics_if_link3_is_not_published() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        let contract = generate_contract(Some(false));
-        // When
-        contract.list();
-        // Then
-        // - Should panic
-    }
-
-    #[test]
-    fn list_all_should_return_all_items() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        let mut contract = generate_contract(Some(false));
-
-        // When
-        contract.create_link(
-            "some_uri".to_string(),
-            "some_title".to_string(),
-            "some_description".to_string(),
-            Some("image".to_string()),
-            true,
-        );
-
-        contract.create_link(
-            "another_some_uri".to_string(),
-            "another_some_title".to_string(),
-            "another_some_description".to_string(),
-            Some("another_image".to_string()),
-            true,
-        );
-
-        contract.create_link(
-            "pvt_some_uri".to_string(),
-            "pvt_some_title".to_string(),
-            "pvt_some_description".to_string(),
-            Some("pvt_another_image".to_string()),
-            false,
-        );
-
-        let result = contract.list_all();
-
-        // Then
-        assert_eq!(result.len(), 3, "Should've returned all items.");
-    }
-
-    #[test]
-    #[should_panic(expected = "Only the owner can view all items")]
-    fn list_all_with_wrong_owner_panics() {
-        // Given
-        let context = get_context(vec![], false, Some(1));
-        testing_env!(context);
-        let mut contract = generate_contract(Some(false));
-
-        contract.create_link(
-            "some_uri".to_string(),
-            "some_title".to_string(),
-            "some_description".to_string(),
-            Some("image".to_string()),
-            true,
-        );
-
-        contract.create_link(
-            "another_some_uri".to_string(),
-            "another_some_title".to_string(),
-            "another_some_description".to_string(),
-            Some("another_image".to_string()),
-            true,
-        );
-
-        contract.create_link(
-            "pvt_some_uri".to_string(),
-            "pvt_some_title".to_string(),
-            "pvt_some_description".to_string(),
-            Some("pvt_another_image".to_string()),
-            false,
-        );
-
-        // When
-        let alt_context = get_alternative_context(vec![], false, Some(1));
-        testing_env!(alt_context);
-        contract.list_all();
-        // Then
-        // - Should panic
+        let link3 = main.get("alice.testnet".to_string());
+        assert!(link3.unwrap().list().len() > 0);
     }
 }
