@@ -395,9 +395,12 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
               onClick={toHome}
               src={logo} className='cursor-pointer h-16 mx-auto rounded-full' alt="Link3" />
             <div><p className="text-3xl">Link3</p>
-              <a
-                href={"https://explorer.testnet.near.org/accounts/" + contract.contractId}
-                className="hidden  lg:block text-xs">{contract.contractId}</a>
+              <div className="hidden lg:block items-center justify-start text-xs">
+                <p>Contract id:</p>
+                <a
+                  href={"https://explorer.testnet.near.org/accounts/" + contract.contractId}
+                  className="underline">{contract.contractId}</a>
+              </div>
             </div>
           </div>
           <div className="flex flex-col justify-center items-center space-y-1">
