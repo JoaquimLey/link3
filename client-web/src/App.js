@@ -6,6 +6,7 @@ import Big from "big.js";
 import logo from './link3_logo.svg';
 import nearLogo from './near_logo.svg';
 import githubLogo from './github_logo.svg';
+import copyicon from './copy_icon.svg';
 
 
 
@@ -61,7 +62,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
 
   const CreateLink3Form = () => {
     return (
-      <form className=" max-w-2xl w-full mx-auto shadow-xl bg-gray-700 px-8 py-4 rounded-lg flex flex-col" onSubmit={formikLink3.handleSubmit}>
+      <form className="max-w-2xl w-full mx-auto shadow-xl bg-gray-700 px-8 py-4 rounded-lg flex flex-col" onSubmit={formikLink3.handleSubmit}>
         <label
           className="mt-2 block text-white text-sm font-bold mb-2"
           htmlFor="title">Title</label>
@@ -167,7 +168,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
         </button>
 
         <div>
-          <p className="font-bold">Login to see my link3, and create yours.</p>
+          <p className="font-bold">Login to create and share your link3</p>
         </div>
       </div>
     )
@@ -175,16 +176,20 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
 
   const renderCreateUserLink3Container = () => {
     return (
-      <div className="pt-12">
-        <p className='text-center text-4xl font-bold mb-4'>Let's start by creating your Link3 profile</p>
+      <div className="px-4 lg:px-0 pt-12">
+        <p className='text-center text-4xl font-bold mb-8'>Let's start by creating your Link3 profile</p>
         {CreateLink3Form()}
       </div>
     )
   }
 
+  const copyText = () => {
+    navigator.clipboard.writeText(window.location.host + '/' + currentUser.accountId)
+  }
+
   const renderUserLink3Container = () => {
     return (
-      <div className="flex pt-10 w-full  justify-around space-x-8">
+      <div className="lg:flex lg:px-2 xl:px-0 px-4 pt-10 w-full  justify-around space-y-8 lg:space-y-0 lg:space-x-8">
         <div className='w-full max-w-xl '>
           <div className="p-4 text-white text-center rounded-lg border">
             <img src={userLink3.image_uri} className="mx-auto h-20 w-20 object-cover rounded-full" alt="Link3" />
@@ -203,12 +208,16 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
               </div> : <p className="py-8">Wow such empty.</p>
             }
           </div>
-          <div className='mt-4'>
+          <div className='mt-4 px-8 lg:px-0'>
             <p className='text-center mb-2 font-semibold'>Share your link3</p>
-            
-            <p className='px-8 py-4 rounded-lg bg-gray-400 text-gray-800 font-bold text-center'>
-            https://{window.location.host}/
-              {currentUser.accountId}</p>
+
+            <p className='flex space-x-4  justify-center items-center pr-8 pl-12 py-4 rounded-lg bg-gray-400 text-gray-800 font-bold text-center'>
+              <span>{window.location.host}/{currentUser.accountId}</span>
+              <img
+                src={copyicon}
+                className='h-4 w-4 cursor-pointer'
+                onClick={(copyText())} />
+            </p>
           </div>
         </div>
 
@@ -317,7 +326,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
 
   const renderSubPath = () => {
     return (
-      <div className='w-full pt-16'>
+      <div className='w-full px-4 lg:px-0 pt-16'>
         <div className="mx-auto w-full max-w-xl p-4 text-white text-center rounded-lg border">
           <img src={otherLink3.image_uri} className="mx-auto h-20 w-20 object-cover rounded-full" alt="Link3" />
           <p className="mt-2 text-2xl font-bold">{otherLink3.title}</p>
@@ -344,8 +353,12 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
       <div className=" text-white space-y-4">
         {/* NAVBAR_START */}
         <div className="px-4 py-4 shadow-xl flex items-center justify-between">
-          <div className="flex items-center space-x-4"><img src={logo} className='h-16 mx-auto rounded-full' alt="NEAR" />
-            <p className="text-3xl">Link3</p>
+          <div className="flex items-center space-x-4"><img src={logo} className='h-16 mx-auto rounded-full' alt="Link3" />
+            <div><p className="text-3xl">Link3</p>
+              <a
+                href={"https://explorer.testnet.near.org/accounts/" + contract.contractId}
+                className="hidden  lg:block text-xs">{contract.contractId}</a>
+            </div>
           </div>
           <div className="flex flex-col justify-center items-center space-y-1">
             {currentUser ? <p className="text-center font-bold text-md">{currentUser.accountId}</p> :
@@ -372,7 +385,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
       </div >
     )
   }
-
+  document.title = 'link3'
   return (
     <div className="bg-gray-800 min-h-screen flex flex-col justify-between text-white">
       {currentUser ? renderLoggedInContainer() : renderLoggedOutContainer()}
