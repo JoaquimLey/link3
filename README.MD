@@ -1,8 +1,8 @@
 ### 🚨 Under HEAVY development
 
-- The current state of the project is under heavy development, the APIs might change, this is the first project that I'm writing, using it to learn react, rust and the NEAR protocol. 
+- The current state of the project is under heavy development, the APIs might change. This is the first NEAR project that I'm writing, using it to learn react, rust (and the NEAR protocol). 
   
-- Literelly the submission for the [NEAR Certified Developer I course](https://www.near.university/courses/near-certified-developer-i), so if you are reading this project to learn any of the tech mentioned above, take everything with a huge grain of slat.
+- Literally the submission for the [NEAR Certified Developer I course](https://www.near.university/courses/near-certified-developer-i), so if you are reading this project to learn any of the tech mentioned above, take everything with a huge grain of slat.
 
 
 - Most (if not all) of the frontend code is throwaway to simply make it "work".
@@ -40,7 +40,7 @@
 ```
 RUSTFLAGS='-C link-arg=-s' cargo build --target wasm32-unknown-unknown --release
 ```
-## Deploy to devnet
+## Deploy you own contract to devnet
 ```bash
 near dev-deploy --wasmFile target/wasm32-unknown-unknown/release/link3.wasm
 ````
@@ -72,7 +72,7 @@ near call $CONTRACT_NAME --accountId $ACCOUNT_ID method_name '{ "param": "value"
 ```
 _`near-cli` Call methods require an account id to be specified (use --accountId or --account_id)_
 
-# Contract API
+# Contract
 
 ## `VIEW` methods
 ### List all links that are published mapped as `ItemInfo`
