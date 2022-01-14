@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import "regenerator-runtime/runtime";
 import { useFormik } from 'formik';
 import Big from "big.js";
@@ -19,7 +19,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
   const [isUserLink3Loaded, setIsUserLink3Loaded] = useState(false)
   const [isCreateLinkLoading, setIsCreateLinkLoading] = useState(false)
   // Actions
-  const fetchUserLink3 = async () => {
+  const fetchUserLink3 = useCallback(async () => {
     if (currentUser) {
       const link3 = await contract.get({ account_id: currentUser.accountId });
       if (link3) {
@@ -28,9 +28,9 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
       setIsUserLink3Loaded(true)
       console.log('link3: ', link3)
     }
-  }
+  }, [currentUser, contract]);
 
-  const fetchOtherLink3 = async () => {
+  const fetchOtherLink3 = useCallback(async () => {
     if (currentUser) {
       const accountId = window.location.pathname.slice(1)
       const link3 = await contract.get({ account_id: accountId });
@@ -40,7 +40,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
       console.log('accountId: ', accountId)
       console.log('setOtherLink3: ', link3)
     }
-  }
+  }, [currentUser, contract]);
 
   const formikLink3 = useFormik({
     initialValues: {
@@ -144,7 +144,7 @@ const App = ({ contract, currentUser, nearConfig, wallet }) => {
     }
     fetchUserLink3()
     setIsSignInLoading(false)
-  }, [currentUser, setIsSignInLoading])
+  }, [currentUser, setIsSignInLoading, fetchUserLink3, fetchOtherLink3])
 
   // Render Methods
   const renderLoggedOutContainer = () => {
