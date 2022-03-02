@@ -2,8 +2,7 @@
 
 - The current state of the project is under heavy development, the APIs might change. This is the first NEAR project that I'm writing, using it to learn react, rust (and the NEAR protocol). 
   
-- Literally the submission for the [NEAR Certified Developer I course](https://www.near.university/courses/near-certified-developer-i), so if you are reading this project to learn any of the tech mentioned above, take everything with a huge grain of slat.
-
+- If you are reading this project to learn any of the tech mentioned above, take everything with a huge grain of salt.
 
 - Most (if not all) of the frontend code is throwaway to simply make it "work".
 
