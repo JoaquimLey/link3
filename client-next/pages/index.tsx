@@ -5,26 +5,14 @@ import ButtonLogin from '../components/buttons'
 import { Logo } from '../components/icons/logo'
 import Layout from '../components/layout'
 import { useEffect, useState } from 'react'
+import { useNear } from '../context/near'
 
 
 
 
 
 const Home: NextPage = () => {
-  useState(() => {
-    const [isOpen, setIsOpen] = useState(false)
-  })
-  useEffect(() => {
-    const doMyAxiosCall = async () => {
-      const cenas = require("../components/near.tsx")
-      console.log(await cenas.default())
-    }
-
-    // This will only be executed on the client
-    doMyAxiosCall();
-  }, [])
-
-
+  const { accountId, isLoggedIn, wallet, login, logout, show } = useNear();
   return (
     <Layout>
       <Head>
@@ -36,6 +24,15 @@ const Home: NextPage = () => {
       <main className=" flex flex-col justify-center items-center space-y-10 h-screen">
         <Logo className="w-80 aspect-square rounded-full " />
         <ButtonLogin isLoading={false} isLoggedIn={false} className='w-40' />
+
+        <div>
+          <h1>Hello Context</h1>
+          <h2>isLoggedIn: {isLoggedIn ? "login" : "logout"}</h2>
+          <div className='flex flex-col space-y-4'>
+            <button onClick={login}>Login</button>
+            <button onClick={logout}>Logout</button>
+          </div>
+        </div>
       </main>
 
       <footer className="">
