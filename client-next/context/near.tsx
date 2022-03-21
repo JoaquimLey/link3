@@ -35,6 +35,7 @@ type nearContextType = {
   accountId: string | null;
   isLoggedIn: boolean;
   wallet: object;
+  view: (methodName: string, args?: any) => Promise<any>;
   hide: () => void;
   show: () => void;
   login: () => void;
@@ -45,6 +46,7 @@ const nearContextDefaultValues: nearContextType = {
   accountId: null,
   isLoggedIn: false,
   wallet: {},
+  view: () => Promise.resolve(),
   hide: () => { },
   show: () => { },
   login: () => { },
@@ -69,14 +71,15 @@ export function NearProvider({ children }: Props) {
 
   useEffect(() => {
     const initWallet = async () => {
-      const NearWalletSelector = (await import("near-wallet-selector")).default
+      const walletSelector = await import("near-wallet-selector")
+      const NearWalletSelector = walletSelector.default
       const selector = new NearWalletSelector({
         networkId: "testnet",
         ui: {
           theme: "dark",
         },
         wallets: ["near-wallet", "sender-wallet", "ledger-wallet"],
-        contract: { contractId: "guest-book.testnet" },
+        contract: { contractId: "dev-1642161678245-56022227209898" },
       });
       await selector.init();
       setSelector(selector);
@@ -95,8 +98,6 @@ export function NearProvider({ children }: Props) {
     initWallet();
   }, []);
 
-
-
   const login = () => {
     setIsLoggedIn(true);
   };
@@ -113,6 +114,23 @@ export function NearProvider({ children }: Props) {
     selector.hide();
   };
 
+  const view = async (methodName: string, args?: any) => {
+    console.log("selector.contract", selector.contract)
+    return await selector.contract.view({
+      methodName,
+      args: args
+    });
+  }
+
+  async function get(account_id: string) {
+    console.log("selector.contract", selector.contract)
+    return await selector.contract.view({
+      methodName: "get",
+      args: { account_id }
+    });
+  }
+
+
   const value = {
     accountId,
     isLoggedIn,
@@ -121,6 +139,7 @@ export function NearProvider({ children }: Props) {
     logout,
     show,
     hide,
+    view
   };
 
   return (

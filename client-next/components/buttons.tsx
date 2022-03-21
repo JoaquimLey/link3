@@ -12,17 +12,18 @@ export default function ButtonLogin({
     <button onClick={onClick} className={`${className}
       bg-primary 
       text-on-primary
-      font-bold 
-      py-2
-      px-4 
+      font-medium
+      text-sm 
+      py-1
+      px-8 
       flex
       justify-center
       items-center
-      space-x-4
+      gap-x-2
       rounded
       `}>
       {isLoggedIn ? 'Disconnect' : 'Login with NEAR'}
-      <NearLogo className={`w-8 text-on-primary ${isLoading ? "animate-spin" : ""}`} />
+      <NearLogo className={`w-6 text-on-primary ${isLoading ? "animate-spin" : ""}`} />
     </button>
   )
 }

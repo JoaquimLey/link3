@@ -17,7 +17,8 @@ module.exports = {
   ],
   theme: {
     fontFamily: {
-      'sans': ['-apple-system', 'BlinkMacSystemFont'],
+      'sans': ['Rubik'],
+      'rubik': ['Rubik'],
     },
     extend: {
       screens: {

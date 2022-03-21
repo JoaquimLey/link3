@@ -8,10 +8,13 @@ const NearProvider = dynamic(() => import('../context/near') as any, { ssr: fals
 function MyApp({ Component, pageProps }: AppProps) {
     return (
         <>
+        <div className='min-h-screen'>
+
             <NearProvider>
                 <TopBar />
                 <Component {...pageProps} />
             </NearProvider>
+        </div>
         </>
     )
 }

@@ -2,11 +2,9 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
 import ButtonLogin from '../components/buttons'
-import { Logo } from '../components/icons/logo'
 import Layout from '../components/layout'
-import { useEffect, useState } from 'react'
 import { useNear } from '../context/near'
-import Link from 'next/link'
+import Hub from '../components/dashboard/hub'
 
 
 
@@ -29,12 +27,8 @@ const Dashboar: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className=" flex flex-col justify-center items-center space-y-10 h-screen">
-        <Link href="/">
-          <a>
-            <Logo className="w-80 aspect-square rounded-full " />
-          </a>
-        </Link>
+      <main className=" flex flex-col justify-center items-center space-y-10">
+        <Hub />
       </main>
 
       <footer className="">

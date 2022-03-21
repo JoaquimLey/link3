@@ -21,6 +21,7 @@ export default function Auth({
         <button className="">
           {accountId}
         </button>
+        <ButtonLogin isLoading={false} isLoggedIn={isLoggedIn} onClick={handleAuth} />
       </div>
     )
   }
