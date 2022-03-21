@@ -1,8 +1,10 @@
-import NearWalletSelector from "near-wallet-selector";
+// import NearWalletSelector from "near-wallet-selector";
 import dynamic from "next/dynamic";
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
-type BuiltInWalletId = "near-wallet" | "sender-wallet" | "ledger-wallet" | "math-wallet";
+
+
+type BuiltInWalletId = "near-wallet" | "sender-wallet" | "ledger-wallet";
 type NetworkId = "mainnet" | "betanet" | "testnet";
 type Theme = "dark" | "light" | "auto";
 
@@ -28,10 +30,12 @@ interface Options {
 
 
 
+
 type nearContextType = {
   accountId: string | null;
   isLoggedIn: boolean;
   wallet: object;
+  hide: () => void;
   show: () => void;
   login: () => void;
   logout: () => void;
@@ -41,9 +45,10 @@ const nearContextDefaultValues: nearContextType = {
   accountId: null,
   isLoggedIn: false,
   wallet: {},
+  hide: () => { },
+  show: () => { },
   login: () => { },
   logout: () => { },
-  show: () => { },
 };
 
 const NearContext = createContext<nearContextType>(nearContextDefaultValues);
@@ -57,15 +62,38 @@ type Props = {
 };
 
 export function NearProvider({ children }: Props) {
-  const selector = new NearWalletSelector({
-    wallets: ["near-wallet", "sender-wallet", "ledger-wallet"],
-    networkId: "testnet",
-    contract: { contractId: "guest-book.testnet" },
-  });
-
+  const [selector, setSelector] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [wallet, setWallet] = useState<object>({});
+
+  useEffect(() => {
+    const initWallet = async () => {
+      const NearWalletSelector = (await import("near-wallet-selector")).default
+      const selector = new NearWalletSelector({
+        networkId: "testnet",
+        ui: {
+          theme: "dark",
+        },
+        wallets: ["near-wallet", "sender-wallet", "ledger-wallet"],
+        contract: { contractId: "guest-book.testnet" },
+      });
+      await selector.init();
+      setSelector(selector);
+      const handleSignIn = async () => {
+        if (!selector) {
+          return;
+        }
+        const account = await selector.getAccount();
+        console.log("account", account);
+        setIsLoggedIn(await selector.isSignedIn());
+        setAccountId(account ? account.accountId : null);
+      }
+      handleSignIn();
+      const subscription = selector.on("signIn", handleSignIn);
+    }
+    initWallet();
+  }, []);
 
 
 
@@ -73,11 +101,16 @@ export function NearProvider({ children }: Props) {
     setIsLoggedIn(true);
   };
 
-  const logout = () => {
-    setIsLoggedIn(false);
+  const logout = async () => {
+    await selector.signOut();
+    setIsLoggedIn(await selector.isSignedIn());
+    setAccountId(null);
   };
   const show = () => {
-    setIsLoggedIn(false);
+    selector.show();
+  };
+  const hide = () => {
+    selector.hide();
   };
 
   const value = {
@@ -87,6 +120,7 @@ export function NearProvider({ children }: Props) {
     login,
     logout,
     show,
+    hide,
   };
 
   return (
@@ -97,3 +131,6 @@ export function NearProvider({ children }: Props) {
     </>
   );
 }
+
+
+export default NearProvider;

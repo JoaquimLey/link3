@@ -12,8 +12,8 @@ import Link from 'next/link'
 
 
 
-const Home: NextPage = () => {
-  const { accountId, isLoggedIn, logout, show } = useNear();
+const Dashboar: NextPage = () => {
+  const { accountId, isLoggedIn, login, logout, show } = useNear();
   const handleLoginClick = () => {
     if (isLoggedIn) {
       logout();
@@ -30,18 +30,9 @@ const Home: NextPage = () => {
       </Head>
 
       <main className=" flex flex-col justify-center items-center space-y-10 h-screen">
-        <Logo className="w-80 aspect-square rounded-full " />
-        <ButtonLogin isLoading={false} isLoggedIn={isLoggedIn} className='w-40' onClick={handleLoginClick} />
-        <div>
-          <h1>Hello Context</h1>
-          <h2>isLoggedIn: {isLoggedIn ? "is logado" : "is NOT logado"}</h2>
-          <h2>AccountId: {accountId ? accountId : "empty"}</h2>
-          <div className='flex flex-col space-y-4'>
-          </div>
-        </div>
-        <Link href="/dashboard">
+        <Link href="/">
           <a>
-            <button>Dashboard</button>
+            <Logo className="w-80 aspect-square rounded-full " />
           </a>
         </Link>
       </main>
@@ -53,4 +44,4 @@ const Home: NextPage = () => {
   )
 }
 
-export default Home
+export default Dashboar

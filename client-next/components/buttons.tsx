@@ -1,14 +1,15 @@
 import { NearLogo } from "./icons/near";
 
 export default function ButtonLogin({
-  isLoading, isLoggedIn, className
+  isLoading, isLoggedIn, className, onClick
 }: {
   isLoading: boolean,
   isLoggedIn: boolean,
   className?: string
+  onClick?: () => void;
 }) {
   return (
-    <button className={`${className}
+    <button onClick={onClick} className={`${className}
       bg-primary 
       text-on-primary
       font-bold 
@@ -20,7 +21,7 @@ export default function ButtonLogin({
       space-x-4
       rounded
       `}>
-      {isLoggedIn ? 'disconnect' : 'Login with NEAR'}
+      {isLoggedIn ? 'Disconnect' : 'Login with NEAR'}
       <NearLogo className={`w-4 text-on-primary ${isLoading ? "animate-spin" : ""}`} />
     </button>
   )
