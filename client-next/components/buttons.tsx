@@ -22,7 +22,7 @@ export default function ButtonLogin({
       rounded
       `}>
       {isLoggedIn ? 'Disconnect' : 'Login with NEAR'}
-      <NearLogo className={`w-4 text-on-primary ${isLoading ? "animate-spin" : ""}`} />
+      <NearLogo className={`w-8 text-on-primary ${isLoading ? "animate-spin" : ""}`} />
     </button>
   )
 }
