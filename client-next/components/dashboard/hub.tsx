@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import useSWR, { Key, Fetcher } from 'swr'
+import getHub from "../../api/getHub";
 import { useNear } from "../../context/near";
 import LinkTree from "./link_tree";
 
@@ -23,15 +25,16 @@ const HubDefault: Hub = {
   links: [],
 }
 
+
 const Hub = () => {
 
-  const { view, isLoggedIn, accountId } = useNear()
+  const { view, getHub, isLoggedIn, accountId } = useNear()
   const [hub, setHub] = useState<Hub | null>(null)
 
-  const hubData = useMemo(async () => {
+  useMemo(async () => {
     if (isLoggedIn && accountId) {
 
-      const result = await view("get", { account_id: accountId });
+      const result = await getHub(accountId);
       if (result) {
         const cenas = {
           title: result.title ? result.title : "",
@@ -41,6 +44,29 @@ const Hub = () => {
       return hub
     }
   }, [accountId, isLoggedIn])
+
+  //GET FROM API
+  // useMemo(async () => {
+  //   if (isLoggedIn && accountId) {
+  //     setHub(await getHub(accountId));
+  //     return hub
+  //   }
+  // }, [accountId, isLoggedIn])
+
+  // GET WITH VIEW
+  // useMemo(async () => {
+  //   if (isLoggedIn && accountId) {
+
+  //     const result = await view("get", { account_id: accountId });
+  //     if (result) {
+  //       const cenas = {
+  //         title: result.title ? result.title : "",
+  //       }
+  //       setHub(result);
+  //     }
+  //     return hub
+  //   }
+  // }, [accountId, isLoggedIn])
 
   if (hub) {
     console.log("hub", hub)
