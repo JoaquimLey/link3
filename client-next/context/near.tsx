@@ -1,11 +1,14 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import nearConfig from "../near/config";
+import Big from "big.js";
+import { Link } from "../near/types";
 
 type nearContextType = {
   accountId: string | null;
   isLoggedIn: boolean;
   view: (methodName: string, args?: any) => Promise<any>;
   getHub: (account_id: string) => Promise<any>;
+  addLink: (props: Link) => Promise<any>;
   show: () => void;
   logout: () => void;
 };
@@ -15,6 +18,7 @@ const nearContextDefaultValues: nearContextType = {
   isLoggedIn: false,
   view: () => Promise.resolve(),
   getHub: () => Promise.resolve(),
+  addLink: () => Promise.resolve(),
   show: () => { },
   logout: () => { },
 };
@@ -42,6 +46,7 @@ export function NearProvider({ children }: Props) {
     await selector.init();
     setSelector(selector);
   };
+
   useEffect(() => {
     initWallet();
   }, []);
@@ -78,18 +83,40 @@ export function NearProvider({ children }: Props) {
   };
 
   const view = async (methodName: string, args?: any) => {
-      return await selector.contract.view({
-        methodName,
-        args: args
-      });
+    return await selector.contract.view({
+      methodName,
+      args: args
+    });
   }
 
-  async function get(account_id: string) {
-    console.log("selector.contract", selector.contract)
-    return await selector.contract.view({
-      methodName: "get",
-      args: { account_id }
-    });
+  async function get(account_id: string): Promise<Link> {
+    try {
+      return await selector.contract.view({
+        methodName: "get",
+        args: { account_id }
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  const BOATLOAD_OF_GAS = Big(3).times(10 ** 13).toFixed();
+  async function addLink(props: Link) {
+    try {
+      console.log("CONTRACT CALL addLink", props);
+      // return await selector.contract.signAndSendTransaction({
+      //   actions: [{
+      //     type: "FunctionCall",
+      //     params: {
+      //       methodName: "add_link",
+      //       args: { ...props },
+      //       gas: BOATLOAD_OF_GAS,
+      //     }
+      //   }]
+      // });      
+    } catch (error) {
+      throw error;
+    }
   }
 
 
@@ -99,7 +126,8 @@ export function NearProvider({ children }: Props) {
     logout,
     show,
     view,
-    getHub: get
+    getHub: get,
+    addLink
   };
 
   return (

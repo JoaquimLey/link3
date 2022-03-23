@@ -1,12 +1,6 @@
+import { Link } from "../../near/types";
 import LinkTreeItem from "./link_tree_item";
 
-interface Link {
-  id: string,
-  uri: string,
-  title: string,
-  description: string,
-  image_uri?: string,
-}
 
 interface Props {
   links: Array<Link>;

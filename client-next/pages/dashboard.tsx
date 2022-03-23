@@ -4,6 +4,7 @@ import Image from 'next/image'
 import ButtonLogin from '../components/buttons'
 import Layout from '../components/layout'
 import Hub from '../components/dashboard/hub'
+import LinkForm from '../components/dashboard/link_form'
 
 const Dashboar: NextPage = () => {
   return (
@@ -14,8 +15,9 @@ const Dashboar: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className=" flex flex-col justify-center items-center space-y-10">
+      <main className=" flex justify-evenly space-x-10">
         <Hub />
+        <LinkForm />
       </main>
 
       <footer className="">
