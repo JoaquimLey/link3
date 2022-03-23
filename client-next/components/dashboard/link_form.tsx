@@ -93,6 +93,7 @@ const LinkForm = () => {
       const file = event.target.files[0];
       setTempImg(file)
       setTempImgUrl(URL.createObjectURL(file))
+      console.log("file", Buffer.from(URL.createObjectURL(file)))
       console.log("img", tempImg)
     } else {
       console.error("no file selected");
