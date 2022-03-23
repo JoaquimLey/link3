@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNear } from "../../context/near"
 import { Link } from "../../near/types";
 import { useForm } from 'react-hook-form'
+import axios from "axios";
 
 
 const defaultLink: Link = {
@@ -44,10 +45,14 @@ const LinkForm = () => {
     const body = new FormData();
     body.append("file", image);
     console.log("image", image)
-    const response = await fetch("/api/file", {
-      method: "POST",
-      body
-    });
+    const config = {
+      headers: { 'content-type': 'multipart/form-data' },
+      onUploadProgress: (event: any) => {
+        console.log(`Current progress:`, Math.round((event.loaded * 100) / event.total));
+      },
+    };
+
+    const response = await axios.post('/api/file', body, config);
   };
 
 
