@@ -20,23 +20,20 @@ async function uploadToIPFS(file: File) {
   return await client.add(file)
 }
 
-export const config = {
-  api: {
-    bodyParser: false
-  }
-};
 
 const post = async (req: NextApiRequest, res: NextApiResponse) => {
-  const form = formidable();
-  return form.parse(req, async function (err, fields, files) {
+  // console.log("file, ", req.body.file)
+  // return res.status(201).send("");
+  const form = formidable({ multiples: false });
+  return form.parse(req, async function (err, fields, file) {
     console.log("err", err);
     console.log("fields", fields);
-    console.log("file", files);
-    if (files && files.file) {
-      console.log(files.file[0])
-      await uploadToIPFS(files.file[0])
-    }
-    return res.status(201).send(files);
+    console.log("file", file.file[0].buffer);
+    // if (files && files.file) {
+    //   console.log(files.file[0])
+    //   await uploadToIPFS(files.file[0])
+    // }
+    return res.status(201).send(file);
   });
 };
 

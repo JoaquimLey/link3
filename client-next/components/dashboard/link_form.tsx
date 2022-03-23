@@ -69,11 +69,12 @@ const LinkForm = () => {
     console.log("file", file)
     if (file) {
       const reader = new FileReader()
-      reader.readAsDataURL(file)
+      reader.readAsArrayBuffer(file)
       reader.onload = (event: any) => {
-        console.log("reader.onload", event)
-        setImageUri(event.target.result)
+        console.log("reader.onload", event.target.result)
+        setTempImg(event.target.result)
       }
+      setTempImgUrl(URL.createObjectURL(file))
     }
   }
   const pickImage = (event: any) => {
@@ -93,8 +94,6 @@ const LinkForm = () => {
       const file = event.target.files[0];
       setTempImg(file)
       setTempImgUrl(URL.createObjectURL(file))
-      console.log("file", Buffer.from(URL.createObjectURL(file)))
-      console.log("img", tempImg)
     } else {
       console.error("no file selected");
     }
