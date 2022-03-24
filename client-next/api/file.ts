@@ -3,10 +3,9 @@ import multer from 'multer';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { create } from 'ipfs-http-client'
 
-const projectId = process.env.IPFS_API_KEY || "26n6LsvlD9avdpz0EZi57oiMWEO"
-const projectSecret = process.env.IPFS_API_SECRET || "da82a6018f98257186f335a1ca9a923b"
-console.log(process.env.IPFS_API_KEY)
-console.log(process.env.IPFS_API_SECRET)
+const projectId = "26n6LsvlD9avdpz0EZi57oiMWEO"
+const projectSecret = "da82a6018f98257186f335a1ca9a923b"
+
 const auth =
   'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
 
@@ -48,7 +47,7 @@ interface NextApiRequestWithFile extends NextApiRequest {
 apiRoute.use(upload.single('file'));
 apiRoute.post(async (req: NextApiRequestWithFile, res: NextApiResponse) => {
   const uploded = await uploadToIPFS(req.file.buffer)
-  res.status(200).json(uploded.cid.toString());
+  res.status(200).json( uploded.cid.toString() );
 });
 
 export default apiRoute;
