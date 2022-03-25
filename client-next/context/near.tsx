@@ -1,26 +1,32 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import nearConfig from "../near/config";
 import Big from "big.js";
-import { Link } from "../near/types";
+import { Hub, HubDto, Link } from "../near/types";
 
 type nearContextType = {
+  isReady: boolean;
+  isPending: boolean;
   accountId: string | null;
   isLoggedIn: boolean;
-  view: (methodName: string, args?: any) => Promise<any>;
-  getHub: (account_id: string) => Promise<any>;
-  addLink: (props: Link) => Promise<any>;
+  hub: Hub | null;
   show: () => void;
   logout: () => void;
+  getHub: (account_id: string) => Promise<any>;
+  addLink: (props: Link) => Promise<any>;
+  createHub: (props: HubDto) => Promise<any>;
 };
 
 const nearContextDefaultValues: nearContextType = {
+  isReady: false,
+  isPending: false,
   accountId: null,
   isLoggedIn: false,
-  view: () => Promise.resolve(),
-  getHub: () => Promise.resolve(),
-  addLink: () => Promise.resolve(),
+  hub: null,
   show: () => { },
   logout: () => { },
+  getHub: () => Promise.resolve(),
+  addLink: () => Promise.resolve(),
+  createHub: () => Promise.resolve(),
 };
 
 const NearContext = createContext<nearContextType>(nearContextDefaultValues);
@@ -38,6 +44,9 @@ export function NearProvider({ children }: Props) {
   const [selector, setSelector] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isReady, setIsReady] = useState<boolean>(false);
+  const [isPending, setIsPending] = useState<boolean>(false);
+  const [hub, setHub] = useState<Hub | null>(null);
 
   const initWallet = async () => {
     const walletSelector = await import("near-wallet-selector")
@@ -58,6 +67,7 @@ export function NearProvider({ children }: Props) {
       console.log("account", account);
       setIsLoggedIn(await selector.isSignedIn());
       setAccountId(account ? account.accountId : null);
+      setIsReady(true);
     }
   }
 
@@ -82,20 +92,19 @@ export function NearProvider({ children }: Props) {
     selector.show();
   };
 
-  const view = async (methodName: string, args?: any) => {
-    return await selector.contract.view({
-      methodName,
-      args: args
-    });
-  }
-
-  async function get(account_id: string): Promise<Link> {
+  async function getHub(account_id: string): Promise<Hub | null> {
     try {
-      return await selector.contract.view({
+      if (!selector || !account_id) {
+        return null;
+      }
+      const result = await selector.contract.view({
         methodName: "get",
         args: { account_id }
       });
+      setHub(result)
+      return result
     } catch (error) {
+      console.log("error", error);
       throw error;
     }
   }
@@ -104,30 +113,56 @@ export function NearProvider({ children }: Props) {
   async function addLink(props: Link) {
     try {
       console.log("CONTRACT CALL addLink", props);
-      // return await selector.contract.signAndSendTransaction({
-      //   actions: [{
-      //     type: "FunctionCall",
-      //     params: {
-      //       methodName: "add_link",
-      //       args: { ...props },
-      //       gas: BOATLOAD_OF_GAS,
-      //     }
-      //   }]
-      // });      
+      const result = await selector.contract.signAndSendTransaction({
+        actions: [{
+          type: "FunctionCall",
+          params: {
+            methodName: "add_link",
+            args: { ...props },
+            gas: BOATLOAD_OF_GAS,
+          }
+        }]
+      });
+      console.log("result", result);
+      getHub(result.transaction.signer_id as string);
+      return result;
     } catch (error) {
+      throw error;
+    }
+  }
+  async function createHub(props: HubDto) {
+    try {
+      console.log("CONTRACT CALL hub", props);
+      const result = await selector.contract.signAndSendTransaction({
+        actions: [{
+          type: "FunctionCall",
+          params: {
+            methodName: "create",
+            args: { ...props },
+            gas: BOATLOAD_OF_GAS,
+          }
+        }]
+      });
+      console.log("result", result);
+      return result;
+    } catch (error) {
+      console.log("error", error);
       throw error;
     }
   }
 
 
   const value = {
+    hub,
+    isReady,
     accountId,
     isLoggedIn,
-    logout,
+    isPending,
     show,
-    view,
-    getHub: get,
-    addLink
+    logout,
+    getHub,
+    addLink,
+    createHub,
   };
 
   return (

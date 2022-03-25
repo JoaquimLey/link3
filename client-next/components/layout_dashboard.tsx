@@ -1,16 +1,20 @@
-import Head from 'next/head'
+import Head from 'next/head';
 import Router from 'next/router';
 import { useEffect } from 'react';
 import { useNear } from '../context/near';
 import { NearLogo } from './icons/near';
+import { useToasts } from 'react-toast-notifications';
 
 export const siteTitle = 'Link3'
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function LayoutDashboard({ children }: { children: React.ReactNode }) {
   const { isReady, accountId, isLoggedIn } = useNear();
+  const { addToast } = useToasts();
+
   useEffect(() => {
     if (isReady) {
       if (!accountId) {
+        addToast("Please connect your wallet", { appearance: 'error' });
         Router.push('/')
       }
     }
@@ -33,13 +37,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <meta name="og:title" content={siteTitle} />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
-      {!isReady && <div className="flex flex-grow justify-center items-center ">
-        <NearLogo className="w-32 h-32 animate-spin antialiased" />
-      </div>}
+      {accountId && (<div>
+        {!isReady && <div className="flex flex-grow justify-center items-center ">
+          <NearLogo className="w-32 h-32 animate-spin antialiased" />
+        </div>}
 
-      {isReady && (
-        <main>{children}</main>
-      )}
+        {isReady && (
+          <main>{children}</main>
+        )}
+      </div>)}
     </div>
   )
 }

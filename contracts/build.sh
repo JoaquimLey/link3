@@ -60,6 +60,7 @@ fi
 
 if $IS_DEPLOY; then
     echo "Deploying contract... ⛓️"
+    # local_near deploy --wasmFile ./out/main.wasm --accountId $ACCOUNT_ID
     near dev-deploy --wasmFile ./out/main.wasm
     echo "---------------------------------------------------------"
     echo "Contract deployed with success ✅" 

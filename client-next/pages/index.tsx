@@ -7,6 +7,7 @@ import Layout from '../components/layout'
 import { useEffect, useState } from 'react'
 import { useNear } from '../context/near'
 import Link from 'next/link'
+import HubForm from '../components/dashboard/hub_form'
 
 
 
@@ -14,6 +15,7 @@ import Link from 'next/link'
 
 const Home: NextPage = () => {
   const { accountId, isLoggedIn, logout, show } = useNear();
+
   const handleLoginClick = () => {
     if (isLoggedIn) {
       logout();
@@ -21,6 +23,7 @@ const Home: NextPage = () => {
       show();
     }
   };
+
   return (
     <Layout>
       <Head>
