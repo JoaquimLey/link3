@@ -1,7 +1,7 @@
 
 
 export const Logo = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 121 116"
+  <svg viewBox="0 0 121 121"
     className={className}
     fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="121" height="121" fill="#F20091" />

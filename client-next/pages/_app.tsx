@@ -11,7 +11,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     return (
         <>
             <div className='min-h-screen'>
-                <ToastProvider placement='bottom-center' autoDismiss={true}
+                <ToastProvider
+                    placement='bottom-center'
+                    autoDismiss={true}
                     autoDismissTimeout={2000}
                 >
                     <NearProvider>

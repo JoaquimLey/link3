@@ -3,6 +3,7 @@ import Router from "next/router";
 import { useMemo } from "react";
 import HubForm from "../../components/dashboard/hub_form";
 import Layout from "../../components/layout";
+import LayoutDashboard from "../../components/layout_dashboard";
 import { useNear } from "../../context/near";
 
 const CreateLink3 = () => {
@@ -17,7 +18,7 @@ const CreateLink3 = () => {
   }, [accountId, isLoggedIn])
 
   return (
-    <Layout>
+    <LayoutDashboard>
       <Head>
         <title>Link3</title>
         <meta name="description" content="A linktree alternative built on NEAR" />
@@ -31,7 +32,7 @@ const CreateLink3 = () => {
       <footer className="">
 
       </footer>
-    </Layout>
+    </LayoutDashboard>
   )
 };
 
