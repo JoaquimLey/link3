@@ -1,3 +1,10 @@
+# This repostiory will remain as is. Work will continue under a new fork:
+- https://github.com/walkinear/link3
+
+
+--------------------------------
+
+
 ### 🚨 Under HEAVY development
 
 - The current state of the project is under heavy development, the APIs might change. This is the first NEAR project that I'm writing, using it to learn react, rust (and the NEAR protocol). 
